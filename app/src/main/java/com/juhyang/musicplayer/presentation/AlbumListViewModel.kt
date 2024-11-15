@@ -3,6 +3,7 @@ package com.juhyang.musicplayer.presentation
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.juhyang.musicplayer.domain.model.Album
+import com.juhyang.musicplayer.domain.model.PermissionStatus
 import com.juhyang.musicplayer.domain.usecase.CheckPermissionUseCase
 import com.juhyang.musicplayer.domain.usecase.LoadAlbumUseCase
 import kotlinx.coroutines.CoroutineDispatcher
@@ -21,10 +22,10 @@ class AlbumListViewModel(
 ): ViewModel() {
     sealed class Action {
         object Idle: Action()
-        object LoadAlbums: Action()
-        object GrantStoragePPermission: Action()
+        object OnResume: Action()
+        object GrantStoragePermission: Action()
         object RevokeStoragePermission: Action()
-        class ClickAlbum(album: Album): Action()
+        class ClickAlbum(val album: Album): Action()
     }
 
     sealed class ViewState {
@@ -63,17 +64,50 @@ class AlbumListViewModel(
 
     private fun handleAction(action: Action) {
         when (action) {
-            is Action.Idle -> {
-
+            is Action.Idle -> {}
+            is Action.OnResume -> {
+                handleOnResume()
             }
-            is Action.LoadAlbums -> {
-
+            is Action.GrantStoragePermission -> {
+                loadAlbum()
             }
-
+            is Action.RevokeStoragePermission -> {
+                setViewState(ViewState.ErrorPermissionDenied)
+            }
             is Action.ClickAlbum -> {
-
+                handleClickAlbum(action.album)
             }
-            else -> {}
         }
+    }
+
+    private fun handleOnResume() {
+        viewModelScope.launch {
+            checkPermissionUseCase.execute().collect {
+                when (it) {
+                    PermissionStatus.GRANTED -> {
+                        loadAlbum()
+                    }
+                    PermissionStatus.REVOKED -> {
+                        setViewState(ViewState.RequestStoragePermission)
+                    }
+                }
+            }
+        }
+    }
+
+    private fun loadAlbum() {
+        viewModelScope.launch(ioDispatcher) {
+            loadAlbumUseCase.execute().collect {
+                if (it.isEmpty()) {
+                    setViewState(ViewState.ErrorEmptyAlbums)
+                } else {
+                    setViewState(ViewState.Loaded(it))
+                }
+            }
+        }
+    }
+
+    private fun handleClickAlbum(album: Album) {
+        setViewState(ViewState.MoveMusicList(album))
     }
 }
