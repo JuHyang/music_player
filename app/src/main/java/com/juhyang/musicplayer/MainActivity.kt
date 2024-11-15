@@ -13,6 +13,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import com.juhyang.musicplayer.ui.theme.MusicPlayerTheme
 
 class MainActivity : ComponentActivity() {
+    private val musicPlayer by lazy { MusicPlayer() }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
@@ -23,6 +25,20 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+
+        musicPlayer.onResume(this)
+
+        musicPlayer.start("")
+    }
+
+    override fun onPause() {
+        super.onPause()
+
+        musicPlayer.onPause(this)
     }
 }
 
