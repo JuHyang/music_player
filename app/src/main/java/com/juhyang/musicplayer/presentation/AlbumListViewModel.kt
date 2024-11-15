@@ -31,7 +31,6 @@ class AlbumListViewModel(
     sealed class ViewState {
         object Idle: ViewState()
         object RequestStoragePermission: ViewState()
-
         class Loaded(val albumList: List<Album>): ViewState()
         class MoveMusicList(val album: Album): ViewState()
         object ErrorPermissionDenied: ViewState()

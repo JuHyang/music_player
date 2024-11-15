@@ -1,5 +1,6 @@
 package com.juhyang.musicplayer.presentation
 
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
@@ -57,7 +58,35 @@ class MainActivity : ComponentActivity() {
         lifecycleScope.launch {
             viewModel.viewState.collect {
                 Log.d("##Arthur", "MainActivity bindViewModel: viewState : ${it}")
+                handleViewState(it)
             }
+        }
+    }
+
+    private fun handleViewState(viewState: AlbumListViewModel.ViewState) {
+        when(viewState) {
+            is AlbumListViewModel.ViewState.Idle -> {}
+            is AlbumListViewModel.ViewState.RequestStoragePermission -> {
+                requestStoragePermission()
+            }
+            is AlbumListViewModel.ViewState.Loaded -> {}
+            is AlbumListViewModel.ViewState.MoveMusicList -> {}
+            is AlbumListViewModel.ViewState.ErrorPermissionDenied -> {}
+            is AlbumListViewModel.ViewState.ErrorEmptyAlbums -> {}
+        }
+    }
+
+    private fun requestStoragePermission() {
+        val manifestPermission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            PermissionRepositoryImpl.READ_MEDIA_AUDIO_PERMISSION
+        } else {
+            PermissionRepositoryImpl.READ_EXTERNAL_STORAGE_PERMISSION
+        }
+        if (shouldShowRequestPermissionRationale(manifestPermission)) {
+            Log.d("##Arthur", "MainActivity bindViewModel: viewState : 사용자 거부 !")
+        } else {
+            Log.d("##Arthur", "MainActivity bindViewModel: viewState : 사용자 거부는 안함! !")
+            requestPermissions(arrayOf(manifestPermission), 100)
         }
     }
 }

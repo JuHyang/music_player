@@ -16,9 +16,9 @@ class PermissionRepositoryImpl(
     private val context: Context
 ): PermissionRepository {
     companion object {
-        private const val READ_EXTERNAL_STORAGE_PERMISSION = Manifest.permission.READ_EXTERNAL_STORAGE
+        const val READ_EXTERNAL_STORAGE_PERMISSION = Manifest.permission.READ_EXTERNAL_STORAGE
         @RequiresApi(Build.VERSION_CODES.TIRAMISU)
-        private const val READ_MEDIA_AUDIO_PERMISSION = Manifest.permission.READ_MEDIA_AUDIO
+        const val READ_MEDIA_AUDIO_PERMISSION = Manifest.permission.READ_MEDIA_AUDIO
     }
     override suspend fun isGrantStoragePermission(): Flow<PermissionStatus> {
         val permissionStatus = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
