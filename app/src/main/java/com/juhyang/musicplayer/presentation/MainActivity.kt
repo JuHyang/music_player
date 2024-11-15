@@ -1,4 +1,4 @@
-package com.juhyang.musicplayer
+package com.juhyang.musicplayer.presentation
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -10,7 +10,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
-import com.juhyang.musicplayer.ui.theme.MusicPlayerTheme
+import com.juhyang.musicplayer.MusicPlayer
+import com.juhyang.musicplayer.presentation.theme.MusicPlayerTheme
 
 class MainActivity : ComponentActivity() {
     private val musicPlayer by lazy { MusicPlayer() }

@@ -1,4 +1,4 @@
-package com.juhyang.musicplayer.ui.theme
+package com.juhyang.musicplayer.presentation.theme
 
 import androidx.compose.ui.graphics.Color
 
