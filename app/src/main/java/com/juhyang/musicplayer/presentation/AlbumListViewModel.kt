@@ -4,7 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.juhyang.musicplayer.domain.model.Album
 import com.juhyang.musicplayer.domain.model.PermissionStatus
-import com.juhyang.musicplayer.domain.usecase.CheckPermissionUseCase
+import com.juhyang.musicplayer.domain.usecase.CheckStoragePermissionUseCase
 import com.juhyang.musicplayer.domain.usecase.LoadAlbumUseCase
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
@@ -15,7 +15,7 @@ import kotlinx.coroutines.launch
 
 class AlbumListViewModel(
     private val loadAlbumUseCase: LoadAlbumUseCase,
-    private val checkPermissionUseCase: CheckPermissionUseCase,
+    private val checkStoragePermissionUseCase: CheckStoragePermissionUseCase,
     private val mainDispatcher:  CoroutineDispatcher = Dispatchers.Main,
     private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
     private val defaultDispatcher: CoroutineDispatcher = Dispatchers.Default
@@ -43,7 +43,7 @@ class AlbumListViewModel(
     val viewState: StateFlow<ViewState> = _viewState
 
     init {
-        viewModelScope.launch {
+        viewModelScope.launch(mainDispatcher) {
             _action.collect { action ->
                 handleAction(action)
             }
@@ -51,13 +51,13 @@ class AlbumListViewModel(
     }
 
     fun setAction(action: Action) {
-        viewModelScope.launch {
+        viewModelScope.launch(mainDispatcher) {
             _action.emit(action)
         }
     }
 
     private fun setViewState(viewState: ViewState) {
-        viewModelScope.launch {
+        viewModelScope.launch(mainDispatcher) {
             _viewState.emit(viewState)
         }
     }
@@ -82,7 +82,7 @@ class AlbumListViewModel(
 
     private fun handleOnResume() {
         viewModelScope.launch {
-            checkPermissionUseCase.execute().collect {
+            checkStoragePermissionUseCase.execute().collect {
                 when (it) {
                     PermissionStatus.GRANTED -> {
                         loadAlbum()

@@ -4,6 +4,6 @@ import com.juhyang.musicplayer.domain.model.PermissionStatus
 import kotlinx.coroutines.flow.Flow
 
 
-interface CheckPermissionUseCase {
+interface CheckStoragePermissionUseCase {
     suspend fun execute(): Flow<PermissionStatus>
 }
