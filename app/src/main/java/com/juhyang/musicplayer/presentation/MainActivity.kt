@@ -5,17 +5,21 @@ import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.lifecycleScope
 import com.juhyang.musicplayer.MusicPlayer
 import com.juhyang.musicplayer.data.repository.PermissionRepositoryImpl
 import com.juhyang.musicplayer.di.AlbumDIContainer
+import com.juhyang.musicplayer.domain.model.Album
 import com.juhyang.musicplayer.presentation.theme.MusicPlayerTheme
 import kotlinx.coroutines.launch
 
@@ -33,7 +37,8 @@ class MainActivity : ComponentActivity() {
             MusicPlayerTheme {
                 // A surface container using the 'background' color from the theme
                 Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
-                    Greeting("Android")
+                    val viewState by viewModel.viewState.collectAsState()
+                    handleViewState(viewState)
                 }
             }
         }
@@ -46,7 +51,7 @@ class MainActivity : ComponentActivity() {
 
         musicPlayer.start("")
 
-        viewModel.setAction(AlbumListViewModel.Action.OnResume)
+        viewModel.setAction(AlbumListViewModel.Intent.OnResume)
     }
 
     override fun onPause() {
@@ -57,21 +62,31 @@ class MainActivity : ComponentActivity() {
 
     private fun bindViewModel() {
         lifecycleScope.launch {
-            viewModel.viewState.collect {
+            viewModel.viewAction.collect {
                 Log.d("##Arthur", "MainActivity bindViewModel: viewState : ${it}")
-                handleViewState(it)
+                handleViewAction(it)
             }
         }
     }
 
+    private fun handleViewAction(viewAction: AlbumListViewModel.ViewAction) {
+        when (viewAction) {
+            is AlbumListViewModel.ViewAction.Idle -> { }
+            is AlbumListViewModel.ViewAction.MoveMusicList -> {}
+            is AlbumListViewModel.ViewAction.RequestStoragePermission -> {
+                requestStoragePermission()
+            }
+        }
+    }
+
+
+    @Composable
     private fun handleViewState(viewState: AlbumListViewModel.ViewState) {
         when(viewState) {
             is AlbumListViewModel.ViewState.Idle -> {}
-            is AlbumListViewModel.ViewState.RequestStoragePermission -> {
-                requestStoragePermission()
+            is AlbumListViewModel.ViewState.Loaded -> {
+                renderAlbumList(viewState.albumList)
             }
-            is AlbumListViewModel.ViewState.Loaded -> {}
-            is AlbumListViewModel.ViewState.MoveMusicList -> {}
             is AlbumListViewModel.ViewState.ErrorPermissionDenied -> {}
             is AlbumListViewModel.ViewState.ErrorEmptyAlbums -> {}
         }
@@ -90,20 +105,26 @@ class MainActivity : ComponentActivity() {
             requestPermissions(arrayOf(manifestPermission), 100)
         }
     }
+
+    @Composable
+    private fun renderAlbumList(albumList: List<Album>) {
+        AlbumList(albumList)
+    }
 }
 
 @Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
+fun AlbumList(albumList: List<Album>) {
+    Column {
+        albumList.forEach {
+            Text(text = it.title)
+        }
+    }
 }
 
 @Preview(showBackground = true)
 @Composable
 fun GreetingPreview() {
     MusicPlayerTheme {
-        Greeting("Android")
+
     }
 }

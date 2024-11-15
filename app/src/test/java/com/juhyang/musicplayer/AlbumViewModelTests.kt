@@ -37,28 +37,28 @@ class AlbumViewModelTests : CoroutineTest() {
         )
     }
 
-    private val albumA = Album("AlbumA", listOf())
-    private val albumB = Album("AlbumB", listOf())
+    private val albumA = Album("AlbumA", "artist", null, listOf())
+    private val albumB = Album("AlbumB", "artist2", null, listOf())
 
     @Test
     fun `화면 로딩 시저장소 접근권한이 없다면 요청한다`() = runTest {
         coEvery { checkStoragePermissionUseCase.execute() } returns flowOf(PermissionStatus.REVOKED)
 
-        viewModel.setAction(AlbumListViewModel.Action.OnResume)
+        viewModel.setAction(AlbumListViewModel.Intent.OnResume)
         coVerify { checkStoragePermissionUseCase.execute() }
 
-        assert(viewModel.viewState.value is AlbumListViewModel.ViewState.RequestStoragePermission)
+        assert(viewModel.viewAction.value is AlbumListViewModel.ViewAction.RequestStoragePermission)
     }
 
     @Test
     fun `화면 로딩 시저장소 접근권한이 없다면 요청하고, 거절하면 에러화면을 보여준다`() = runTest {
         coEvery { checkStoragePermissionUseCase.execute() } returns flowOf(PermissionStatus.REVOKED)
 
-        viewModel.setAction(AlbumListViewModel.Action.OnResume)
+        viewModel.setAction(AlbumListViewModel.Intent.OnResume)
         coVerify { checkStoragePermissionUseCase.execute() }
 
-        assert(viewModel.viewState.value is AlbumListViewModel.ViewState.RequestStoragePermission)
-        viewModel.setAction(AlbumListViewModel.Action.RevokeStoragePermission)
+        assert(viewModel.viewAction.value is AlbumListViewModel.ViewAction.RequestStoragePermission)
+        viewModel.setAction(AlbumListViewModel.Intent.RevokeStoragePermission)
 
         assert(viewModel.viewState.value is AlbumListViewModel.ViewState.ErrorPermissionDenied)
     }
@@ -68,11 +68,11 @@ class AlbumViewModelTests : CoroutineTest() {
         coEvery { checkStoragePermissionUseCase.execute() } returns flowOf(PermissionStatus.REVOKED)
         coEvery { loadAlbumUseCase.execute() } returns flowOf(listOf(albumA))
 
-        viewModel.setAction(AlbumListViewModel.Action.OnResume)
+        viewModel.setAction(AlbumListViewModel.Intent.OnResume)
         coVerify { checkStoragePermissionUseCase.execute() }
 
-        assert(viewModel.viewState.value is AlbumListViewModel.ViewState.RequestStoragePermission)
-        viewModel.setAction(AlbumListViewModel.Action.GrantStoragePermission)
+        assert(viewModel.viewAction.value is AlbumListViewModel.ViewAction.RequestStoragePermission)
+        viewModel.setAction(AlbumListViewModel.Intent.GrantStoragePermission)
 
         coVerify { loadAlbumUseCase.execute() }
         assert(viewModel.viewState.value is AlbumListViewModel.ViewState.Loaded)
@@ -84,7 +84,7 @@ class AlbumViewModelTests : CoroutineTest() {
         coEvery { checkStoragePermissionUseCase.execute() } returns flowOf(PermissionStatus.GRANTED)
         coEvery { loadAlbumUseCase.execute() } returns flowOf(listOf(albumA))
 
-        viewModel.setAction(AlbumListViewModel.Action.OnResume)
+        viewModel.setAction(AlbumListViewModel.Intent.OnResume)
         coVerify { checkStoragePermissionUseCase.execute() }
         coVerify { loadAlbumUseCase.execute() }
 
@@ -97,7 +97,7 @@ class AlbumViewModelTests : CoroutineTest() {
         coEvery { checkStoragePermissionUseCase.execute() } returns flowOf(PermissionStatus.GRANTED)
         coEvery { loadAlbumUseCase.execute() } returns flowOf(emptyList())
 
-        viewModel.setAction(AlbumListViewModel.Action.OnResume)
+        viewModel.setAction(AlbumListViewModel.Intent.OnResume)
         coVerify { checkStoragePermissionUseCase.execute() }
         coVerify { loadAlbumUseCase.execute() }
 
@@ -106,10 +106,10 @@ class AlbumViewModelTests : CoroutineTest() {
 
     @Test
     fun `앨범 클릭하면 곡 목록화면으로 넘어간다`() = runTest {
-        viewModel.setAction(AlbumListViewModel.Action.ClickAlbum(albumB))
+        viewModel.setAction(AlbumListViewModel.Intent.ClickAlbum(albumB))
 
-        val viewStateValue = viewModel.viewState.value
-        assert(viewStateValue is AlbumListViewModel.ViewState.MoveMusicList)
-        assert((viewStateValue as AlbumListViewModel.ViewState.MoveMusicList).album == albumB)
+        val viewActionValue = viewModel.viewAction.value
+        assert(viewActionValue is AlbumListViewModel.ViewAction.MoveMusicList)
+        assert((viewActionValue as AlbumListViewModel.ViewAction.MoveMusicList).album == albumB)
     }
 }

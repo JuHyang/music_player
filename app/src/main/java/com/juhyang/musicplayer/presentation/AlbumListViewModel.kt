@@ -20,38 +20,45 @@ class AlbumListViewModel(
     private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
     private val defaultDispatcher: CoroutineDispatcher = Dispatchers.Default
 ): ViewModel() {
-    sealed class Action {
-        object Idle: Action()
-        object OnResume: Action()
-        object GrantStoragePermission: Action()
-        object RevokeStoragePermission: Action()
-        class ClickAlbum(val album: Album): Action()
+    sealed class Intent {
+        object Idle: Intent()
+        object OnResume: Intent()
+        object GrantStoragePermission: Intent()
+        object RevokeStoragePermission: Intent()
+        class ClickAlbum(val album: Album): Intent()
     }
 
     sealed class ViewState {
         object Idle: ViewState()
-        object RequestStoragePermission: ViewState()
         class Loaded(val albumList: List<Album>): ViewState()
-        class MoveMusicList(val album: Album): ViewState()
         object ErrorPermissionDenied: ViewState()
         object ErrorEmptyAlbums: ViewState()
     }
 
-    private val _action: MutableStateFlow<Action> = MutableStateFlow(Action.Idle)
+    sealed class ViewAction {
+        object Idle: ViewAction()
+        class MoveMusicList(val album: Album): ViewAction()
+        object RequestStoragePermission: ViewAction()
+    }
+
+    private val _intent: MutableStateFlow<Intent> = MutableStateFlow(Intent.Idle)
     private val _viewState: MutableStateFlow<ViewState> = MutableStateFlow(ViewState.Idle)
     val viewState: StateFlow<ViewState> = _viewState
 
+    private val _viewAction: MutableStateFlow<ViewAction> = MutableStateFlow(ViewAction.Idle)
+    val viewAction: StateFlow<ViewAction> = _viewAction
+
     init {
         viewModelScope.launch(mainDispatcher) {
-            _action.collect { action ->
+            _intent.collect { action ->
                 handleAction(action)
             }
         }
     }
 
-    fun setAction(action: Action) {
+    fun setAction(intent: Intent) {
         viewModelScope.launch(mainDispatcher) {
-            _action.emit(action)
+            _intent.emit(intent)
         }
     }
 
@@ -61,20 +68,26 @@ class AlbumListViewModel(
         }
     }
 
-    private fun handleAction(action: Action) {
-        when (action) {
-            is Action.Idle -> {}
-            is Action.OnResume -> {
+    private fun setViewAction(viewAction: ViewAction) {
+        viewModelScope.launch(mainDispatcher) {
+            _viewAction.emit(viewAction)
+        }
+    }
+
+    private fun handleAction(intent: Intent) {
+        when (intent) {
+            is Intent.Idle -> {}
+            is Intent.OnResume -> {
                 handleOnResume()
             }
-            is Action.GrantStoragePermission -> {
+            is Intent.GrantStoragePermission -> {
                 loadAlbum()
             }
-            is Action.RevokeStoragePermission -> {
+            is Intent.RevokeStoragePermission -> {
                 setViewState(ViewState.ErrorPermissionDenied)
             }
-            is Action.ClickAlbum -> {
-                handleClickAlbum(action.album)
+            is Intent.ClickAlbum -> {
+                handleClickAlbum(intent.album)
             }
         }
     }
@@ -87,7 +100,7 @@ class AlbumListViewModel(
                         loadAlbum()
                     }
                     PermissionStatus.REVOKED -> {
-                        setViewState(ViewState.RequestStoragePermission)
+                        setViewAction(ViewAction.RequestStoragePermission)
                     }
                 }
             }
@@ -107,6 +120,6 @@ class AlbumListViewModel(
     }
 
     private fun handleClickAlbum(album: Album) {
-        setViewState(ViewState.MoveMusicList(album))
+        setViewAction(ViewAction.MoveMusicList(album))
     }
 }
