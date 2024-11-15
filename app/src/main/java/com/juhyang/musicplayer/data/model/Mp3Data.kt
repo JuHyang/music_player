@@ -1,5 +1,13 @@
 package com.juhyang.musicplayer.data.model
 
+import android.net.Uri
 
-class Mp3Data {
-}
+
+data class Mp3Data(
+    val title: String,
+    val filePath: String,
+    val albumName: String,
+    val artistName: String,
+    val albumCoverUri: Uri?,
+    val duration: Long?
+)

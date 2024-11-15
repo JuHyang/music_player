@@ -16,19 +16,19 @@ import com.juhyang.musicplayer.presentation.AlbumListViewModel
 
 class AlbumDIContainer {
     fun createViewModel(context: Context): AlbumListViewModel {
-        return AlbumListViewModel(createLoadAlbumUseCase(), createCheckStoragePermissionUseCase(context))
+        return AlbumListViewModel(createLoadAlbumUseCase(context), createCheckStoragePermissionUseCase(context))
     }
 
-    private fun createLoadAlbumUseCase(): LoadAlbumUseCase {
-        return LoadAlbumUseCaseImpl(createAlbumRepository())
+    private fun createLoadAlbumUseCase(context: Context): LoadAlbumUseCase {
+        return LoadAlbumUseCaseImpl(createAlbumRepository(context))
     }
 
-    private fun createAlbumRepository(): AlbumRepository {
-        return AlbumRepositoryImpl(createAlbumLocalDataSource())
+    private fun createAlbumRepository(context: Context): AlbumRepository {
+        return AlbumRepositoryImpl(createAlbumLocalDataSource(context))
     }
 
-    private fun createAlbumLocalDataSource(): AlbumDataSource {
-        return AlbumLocalDataSource()
+    private fun createAlbumLocalDataSource(context: Context): AlbumDataSource {
+        return AlbumLocalDataSource(context)
     }
 
     private fun createCheckStoragePermissionUseCase(context: Context): CheckStoragePermissionUseCase {
