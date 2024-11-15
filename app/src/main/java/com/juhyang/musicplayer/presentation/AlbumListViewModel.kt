@@ -3,6 +3,8 @@ package com.juhyang.musicplayer.presentation
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.juhyang.musicplayer.domain.model.Album
+import com.juhyang.musicplayer.domain.usecase.CheckPermissionUseCase
+import com.juhyang.musicplayer.domain.usecase.LoadAlbumUseCase
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -11,6 +13,8 @@ import kotlinx.coroutines.launch
 
 
 class AlbumListViewModel(
+    private val loadAlbumUseCase: LoadAlbumUseCase,
+    private val checkPermissionUseCase: CheckPermissionUseCase,
     private val mainDispatcher:  CoroutineDispatcher = Dispatchers.Main,
     private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
     private val defaultDispatcher: CoroutineDispatcher = Dispatchers.Default
@@ -18,13 +22,19 @@ class AlbumListViewModel(
     sealed class Action {
         object Idle: Action()
         object LoadAlbums: Action()
+        object GrantStoragePPermission: Action()
+        object RevokeStoragePermission: Action()
         class ClickAlbum(album: Album): Action()
     }
 
     sealed class ViewState {
         object Idle: ViewState()
+        object RequestStoragePermission: ViewState()
+
         class Loaded(val albumList: List<Album>): ViewState()
         class MoveMusicList(val album: Album): ViewState()
+        object ErrorPermissionDenied: ViewState()
+        object ErrorEmptyAlbums: ViewState()
     }
 
     private val _action: MutableStateFlow<Action> = MutableStateFlow(Action.Idle)
@@ -63,6 +73,7 @@ class AlbumListViewModel(
             is Action.ClickAlbum -> {
 
             }
+            else -> {}
         }
     }
 }

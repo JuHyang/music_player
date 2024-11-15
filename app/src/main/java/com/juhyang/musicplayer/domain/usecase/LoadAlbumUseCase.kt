@@ -5,5 +5,5 @@ import kotlinx.coroutines.flow.Flow
 
 
 interface LoadAlbumUseCase {
-    suspend fun execute(): Flow<Album>
+    suspend fun execute(): Flow<List<Album>>
 }
