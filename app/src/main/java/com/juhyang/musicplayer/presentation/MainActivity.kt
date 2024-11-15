@@ -5,27 +5,33 @@ import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.lifecycleScope
+import androidx.navigation.NavHostController
+import androidx.navigation.NavType
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.juhyang.musicplayer.MusicPlayer
 import com.juhyang.musicplayer.data.repository.PermissionRepositoryImpl
 import com.juhyang.musicplayer.di.AlbumDIContainer
-import com.juhyang.musicplayer.domain.model.Album
 import com.juhyang.musicplayer.presentation.theme.MusicPlayerTheme
+import com.juhyang.musicplayer.ui.AlbumDetailScreen
+import com.juhyang.musicplayer.ui.AlbumListScreen
+import com.juhyang.musicplayer.ui.MusicPlayerView
 import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
     private lateinit var viewModel: AlbumListViewModel
     private val musicPlayer by lazy { MusicPlayer() }
+    private var navController: NavHostController? = null
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -35,11 +41,8 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             MusicPlayerTheme {
-                // A surface container using the 'background' color from the theme
-                Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
-                    val viewState by viewModel.viewState.collectAsState()
-                    handleViewState(viewState)
-                }
+                navController = rememberNavController()
+                MyApp(navController = navController!!, albumListViewModel = viewModel)
             }
         }
     }
@@ -72,25 +75,15 @@ class MainActivity : ComponentActivity() {
     private fun handleViewAction(viewAction: AlbumListViewModel.ViewAction) {
         when (viewAction) {
             is AlbumListViewModel.ViewAction.Idle -> { }
-            is AlbumListViewModel.ViewAction.MoveMusicList -> {}
+            is AlbumListViewModel.ViewAction.MoveMusicList -> {
+                navController?.navigate("albumDetail/${viewAction.album.title}/${viewAction.album.artist}")
+            }
             is AlbumListViewModel.ViewAction.RequestStoragePermission -> {
                 requestStoragePermission()
             }
         }
     }
 
-
-    @Composable
-    private fun handleViewState(viewState: AlbumListViewModel.ViewState) {
-        when(viewState) {
-            is AlbumListViewModel.ViewState.Idle -> {}
-            is AlbumListViewModel.ViewState.Loaded -> {
-                renderAlbumList(viewState.albumList)
-            }
-            is AlbumListViewModel.ViewState.ErrorPermissionDenied -> {}
-            is AlbumListViewModel.ViewState.ErrorEmptyAlbums -> {}
-        }
-    }
 
     private fun requestStoragePermission() {
         val manifestPermission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -105,26 +98,41 @@ class MainActivity : ComponentActivity() {
             requestPermissions(arrayOf(manifestPermission), 100)
         }
     }
-
-    @Composable
-    private fun renderAlbumList(albumList: List<Album>) {
-        AlbumList(albumList)
-    }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AlbumList(albumList: List<Album>) {
-    Column {
-        albumList.forEach {
-            Text(text = it.title)
+fun MyApp(navController: NavHostController, albumListViewModel: AlbumListViewModel) {
+//    val navController = rememberNavController()
+    Scaffold(
+        bottomBar = { MusicPlayerView() }
+    ) {paddingValues ->
+
+        NavHost(
+            navController = navController,
+            startDestination = "albumList",
+            modifier = Modifier.padding(paddingValues)
+        ) {
+            composable("albumList") { AlbumListScreen(viewModel = albumListViewModel)}
+            composable(
+                "albumDetail/{albumName}/{artistName}",
+                arguments = listOf(navArgument("albumName") { type = NavType.StringType}, navArgument("artistName") { type = NavType.StringType})
+            ) { backStackEntry ->
+                val albumName = backStackEntry.arguments?.getString("albumName") ?: ""
+                val artistName = backStackEntry.arguments?.getString("artistName") ?: ""
+                Log.d("##Arthur", "albumName MyApp: albumName : ${albumName}")
+                Log.d("##Arthur", "artistName MyApp: artistName : ${artistName}")
+                AlbumDetailScreen()
+            }
         }
     }
+    
 }
 
 @Preview(showBackground = true)
 @Composable
-fun GreetingPreview() {
+fun MyAppPreView() {
     MusicPlayerTheme {
-
+//        MyApp()
     }
 }
