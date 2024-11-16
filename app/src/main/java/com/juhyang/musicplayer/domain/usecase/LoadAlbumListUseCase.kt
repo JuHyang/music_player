@@ -4,6 +4,6 @@ import com.juhyang.musicplayer.domain.model.Album
 import kotlinx.coroutines.flow.Flow
 
 
-interface LoadAlbumUseCase {
-    suspend fun execute(albumTitle: String, artist: String): Flow<Album>
+interface LoadAlbumListUseCase {
+    suspend fun execute(): Flow<List<Album>>
 }

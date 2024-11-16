@@ -1,4 +1,4 @@
-package com.juhyang.musicplayer.presentation.theme
+package com.juhyang.musicplayer.ui.theme
 
 import android.app.Activity
 import android.os.Build

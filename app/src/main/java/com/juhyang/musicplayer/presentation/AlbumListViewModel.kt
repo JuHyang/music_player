@@ -5,7 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.juhyang.musicplayer.domain.model.Album
 import com.juhyang.musicplayer.domain.model.PermissionStatus
 import com.juhyang.musicplayer.domain.usecase.CheckStoragePermissionUseCase
-import com.juhyang.musicplayer.domain.usecase.LoadAlbumUseCase
+import com.juhyang.musicplayer.domain.usecase.LoadAlbumListUseCase
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -14,7 +14,7 @@ import kotlinx.coroutines.launch
 
 
 class AlbumListViewModel(
-    private val loadAlbumUseCase: LoadAlbumUseCase,
+    private val loadAlbumListUseCase: LoadAlbumListUseCase,
     private val checkStoragePermissionUseCase: CheckStoragePermissionUseCase,
     private val mainDispatcher:  CoroutineDispatcher = Dispatchers.Main,
     private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
@@ -78,7 +78,7 @@ class AlbumListViewModel(
         when (intent) {
             is Intent.Idle -> {}
             is Intent.LoadAlbums -> {
-                handleOnResume()
+                handleLoadAlbums()
             }
             is Intent.GrantStoragePermission -> {
                 loadAlbum()
@@ -92,7 +92,7 @@ class AlbumListViewModel(
         }
     }
 
-    private fun handleOnResume() {
+    private fun handleLoadAlbums() {
         viewModelScope.launch {
             checkStoragePermissionUseCase.execute().collect {
                 when (it) {
@@ -109,7 +109,7 @@ class AlbumListViewModel(
 
     private fun loadAlbum() {
         viewModelScope.launch(ioDispatcher) {
-            loadAlbumUseCase.execute().collect {
+            loadAlbumListUseCase.execute().collect {
                 if (it.isEmpty()) {
                     setViewState(ViewState.ErrorEmptyAlbums)
                 } else {

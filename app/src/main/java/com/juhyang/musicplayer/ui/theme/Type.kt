@@ -1,4 +1,4 @@
-package com.juhyang.musicplayer.presentation.theme
+package com.juhyang.musicplayer.ui.theme
 
 import androidx.compose.material3.Typography
 import androidx.compose.ui.text.TextStyle

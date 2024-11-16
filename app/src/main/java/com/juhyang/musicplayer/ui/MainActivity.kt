@@ -1,4 +1,4 @@
-package com.juhyang.musicplayer.presentation
+package com.juhyang.musicplayer.ui
 
 import android.os.Build
 import android.os.Bundle
@@ -21,10 +21,8 @@ import androidx.navigation.navArgument
 import com.juhyang.musicplayer.MusicPlayer
 import com.juhyang.musicplayer.data.repository.PermissionRepositoryImpl
 import com.juhyang.musicplayer.di.AlbumDIContainer
-import com.juhyang.musicplayer.presentation.theme.MusicPlayerTheme
-import com.juhyang.musicplayer.ui.AlbumDetailScreen
-import com.juhyang.musicplayer.ui.AlbumListScreen
-import com.juhyang.musicplayer.ui.MusicPlayerView
+import com.juhyang.musicplayer.presentation.AlbumListViewModel
+import com.juhyang.musicplayer.ui.theme.MusicPlayerTheme
 import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {

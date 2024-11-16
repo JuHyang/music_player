@@ -9,8 +9,8 @@ import com.juhyang.musicplayer.domain.repository.AlbumRepository
 import com.juhyang.musicplayer.domain.repository.PermissionRepository
 import com.juhyang.musicplayer.domain.usecase.CheckStoragePermissionUseCase
 import com.juhyang.musicplayer.domain.usecase.CheckStoragePermissionUseCaseImpl
-import com.juhyang.musicplayer.domain.usecase.LoadAlbumUseCase
-import com.juhyang.musicplayer.domain.usecase.LoadAlbumUseCaseImpl
+import com.juhyang.musicplayer.domain.usecase.LoadAlbumListUseCase
+import com.juhyang.musicplayer.domain.usecase.LoadAlbumListUseCaseImpl
 import com.juhyang.musicplayer.presentation.AlbumListViewModel
 
 
@@ -19,8 +19,8 @@ class AlbumDIContainer {
         return AlbumListViewModel(createLoadAlbumUseCase(context), createCheckStoragePermissionUseCase(context))
     }
 
-    private fun createLoadAlbumUseCase(context: Context): LoadAlbumUseCase {
-        return LoadAlbumUseCaseImpl(createAlbumRepository(context))
+    private fun createLoadAlbumUseCase(context: Context): LoadAlbumListUseCase {
+        return LoadAlbumListUseCaseImpl(createAlbumRepository(context))
     }
 
     private fun createAlbumRepository(context: Context): AlbumRepository {

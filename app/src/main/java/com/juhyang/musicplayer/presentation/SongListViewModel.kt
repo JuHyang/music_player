@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.juhyang.musicplayer.domain.model.Album
 import com.juhyang.musicplayer.domain.model.Song
+import com.juhyang.musicplayer.domain.usecase.LoadAlbumUseCase
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -12,6 +13,7 @@ import kotlinx.coroutines.launch
 
 
 class SongListViewModel(
+    private val loadAlbumUseCase: LoadAlbumUseCase,
     private val mainDispatcher: CoroutineDispatcher = Dispatchers.Main,
     private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
     private val defaultDispatcher: CoroutineDispatcher = Dispatchers.Default
@@ -25,8 +27,8 @@ class SongListViewModel(
     }
     sealed class ViewState {
         object Idle: ViewState()
-        object Loading: ViewState()
         class Loaded(val album: Album): ViewState()
+        object Error: ViewState()
     }
     sealed class ViewAction {
         object Idle: ViewAction()
@@ -39,6 +41,7 @@ class SongListViewModel(
 
     private val _viewAction: MutableStateFlow<ViewAction> = MutableStateFlow(ViewAction.Idle)
     val viewAction: StateFlow<ViewAction> = _viewAction
+    private var album: Album? = null
 
     init {
         viewModelScope.launch(mainDispatcher) {
@@ -69,7 +72,46 @@ class SongListViewModel(
     private fun handleIntent(intent: Intent) {
         when (intent) {
             is Intent.Idle -> {}
-            else -> {}
+            is Intent.LoadSongs -> {
+                handleLoadSongs(intent.albumTitle, intent.artist)
+            }
+            is Intent.PlayAll -> {
+                handlePlayAll()
+            }
+            is Intent.PlayRandom -> {
+                handlePlayRandom()
+            }
+            is Intent.PlaySong -> {
+                handlePlaySong(intent.index)
+            }
+        }
+    }
+
+    private fun handleLoadSongs(albumTitle: String, artist: String) {
+        viewModelScope.launch(ioDispatcher) {
+            loadAlbumUseCase.execute(albumTitle, artist).collect {
+                album = it
+                setViewState(ViewState.Loaded(it))
+            }
+        }
+    }
+
+    private fun handlePlayAll() {
+        album?.let {
+            setViewAction(ViewAction.PlaySongs(it.songs))
+        }
+    }
+
+    private fun handlePlayRandom() {
+        album?.let {
+            val mutableSongs: MutableList<Song> = it.songs.toMutableList()
+            setViewAction(ViewAction.PlaySongs(mutableSongs.shuffled()))
+        }
+    }
+
+    private fun handlePlaySong(index: Int) {
+        album?.let {
+            setViewAction(ViewAction.PlaySongs(it.songs.slice(index until it.songs.size)))
         }
     }
 }

@@ -3,7 +3,7 @@ package com.juhyang.musicplayer
 import com.juhyang.musicplayer.domain.model.Album
 import com.juhyang.musicplayer.domain.model.PermissionStatus
 import com.juhyang.musicplayer.domain.usecase.CheckStoragePermissionUseCase
-import com.juhyang.musicplayer.domain.usecase.LoadAlbumUseCase
+import com.juhyang.musicplayer.domain.usecase.LoadAlbumListUseCase
 import com.juhyang.musicplayer.presentation.AlbumListViewModel
 import io.mockk.MockKAnnotations
 import io.mockk.coEvery
@@ -22,14 +22,14 @@ class AlbumViewModelTests : CoroutineTest() {
     private lateinit var checkStoragePermissionUseCase: CheckStoragePermissionUseCase
 
     @MockK
-    private lateinit var loadAlbumUseCase: LoadAlbumUseCase
+    private lateinit var loadAlbumListUseCase: LoadAlbumListUseCase
 
     @Before
     fun setUp() {
         MockKAnnotations.init(this, relaxed = true)
 
         viewModel = AlbumListViewModel(
-            loadAlbumUseCase,
+            loadAlbumListUseCase,
             checkStoragePermissionUseCase,
             mainDispatcher = testDispatcher,
             ioDispatcher = testDispatcher,
@@ -66,7 +66,7 @@ class AlbumViewModelTests : CoroutineTest() {
     @Test
     fun `화면 로딩 시저장소 접근권한이 없다면 요청하고, 승인하면 목록을 로딩한다`() = runTest {
         coEvery { checkStoragePermissionUseCase.execute() } returns flowOf(PermissionStatus.REVOKED)
-        coEvery { loadAlbumUseCase.execute() } returns flowOf(listOf(albumA))
+        coEvery { loadAlbumListUseCase.execute() } returns flowOf(listOf(albumA))
 
         viewModel.setIntent(AlbumListViewModel.Intent.LoadAlbums)
         coVerify { checkStoragePermissionUseCase.execute() }
@@ -74,7 +74,7 @@ class AlbumViewModelTests : CoroutineTest() {
         assert(viewModel.viewAction.value is AlbumListViewModel.ViewAction.RequestStoragePermission)
         viewModel.setIntent(AlbumListViewModel.Intent.GrantStoragePermission)
 
-        coVerify { loadAlbumUseCase.execute() }
+        coVerify { loadAlbumListUseCase.execute() }
         assert(viewModel.viewState.value is AlbumListViewModel.ViewState.Loaded)
         assert((viewModel.viewState.value as AlbumListViewModel.ViewState.Loaded).albumList == listOf(albumA))
     }
@@ -82,11 +82,11 @@ class AlbumViewModelTests : CoroutineTest() {
     @Test
     fun `화면 로딩 시 저장소 접근권한이 있으면 목록을 로딩한다`() = runTest {
         coEvery { checkStoragePermissionUseCase.execute() } returns flowOf(PermissionStatus.GRANTED)
-        coEvery { loadAlbumUseCase.execute() } returns flowOf(listOf(albumA))
+        coEvery { loadAlbumListUseCase.execute() } returns flowOf(listOf(albumA))
 
         viewModel.setIntent(AlbumListViewModel.Intent.LoadAlbums)
         coVerify { checkStoragePermissionUseCase.execute() }
-        coVerify { loadAlbumUseCase.execute() }
+        coVerify { loadAlbumListUseCase.execute() }
 
         assert(viewModel.viewState.value is AlbumListViewModel.ViewState.Loaded)
         assert((viewModel.viewState.value as AlbumListViewModel.ViewState.Loaded).albumList == listOf(albumA))
@@ -95,11 +95,11 @@ class AlbumViewModelTests : CoroutineTest() {
     @Test
     fun `로딩한 앨범이 한개도 없다면 관련 에러화면을 보여준다`() = runTest {
         coEvery { checkStoragePermissionUseCase.execute() } returns flowOf(PermissionStatus.GRANTED)
-        coEvery { loadAlbumUseCase.execute() } returns flowOf(emptyList())
+        coEvery { loadAlbumListUseCase.execute() } returns flowOf(emptyList())
 
         viewModel.setIntent(AlbumListViewModel.Intent.LoadAlbums)
         coVerify { checkStoragePermissionUseCase.execute() }
-        coVerify { loadAlbumUseCase.execute() }
+        coVerify { loadAlbumListUseCase.execute() }
 
         assert(viewModel.viewState.value is AlbumListViewModel.ViewState.ErrorEmptyAlbums)
     }
