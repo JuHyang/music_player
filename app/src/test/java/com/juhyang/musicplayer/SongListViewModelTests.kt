@@ -44,7 +44,7 @@ class SongListViewModelTests: CoroutineTest() {
 
     @Test
     fun `앨범 이름과 아티스트를 가지고 음악을 로딩해온다`() = runTest {
-        viewModel.setIntent(SongListViewModel.Intent.LoadSongs(albumTitle, artist))
+        viewModel.setIntent(SongListViewModel.Intent.LoadAlbum(albumTitle, artist))
         coVerify { loadAlbumUseCase.execute(albumTitle, artist) }
 
 
@@ -54,7 +54,7 @@ class SongListViewModelTests: CoroutineTest() {
 
     @Test
     fun `재생버튼을 누르면 앨범 전체가 음악이 재생된다`() = runTest {
-        viewModel.setIntent(SongListViewModel.Intent.LoadSongs(albumTitle, artist))
+        viewModel.setIntent(SongListViewModel.Intent.LoadAlbum(albumTitle, artist))
         coVerify { loadAlbumUseCase.execute(albumTitle, artist) }
 
         viewModel.setIntent(SongListViewModel.Intent.PlayAll)
@@ -65,7 +65,7 @@ class SongListViewModelTests: CoroutineTest() {
 
     @Test
     fun `랜덤 재생버튼을 누르면 앨범 전체가 랜덤으로 재생된다`() = runTest  {
-        viewModel.setIntent(SongListViewModel.Intent.LoadSongs(albumTitle, artist))
+        viewModel.setIntent(SongListViewModel.Intent.LoadAlbum(albumTitle, artist))
         coVerify { loadAlbumUseCase.execute(albumTitle, artist) }
 
         viewModel.setIntent(SongListViewModel.Intent.PlayRandom)
@@ -78,7 +78,7 @@ class SongListViewModelTests: CoroutineTest() {
 
     @Test
     fun `노래를 고르면 해당 노래를 포함하고 다음 노래들을 모두 재생한다`() = runTest  {
-        viewModel.setIntent(SongListViewModel.Intent.LoadSongs(albumTitle, artist))
+        viewModel.setIntent(SongListViewModel.Intent.LoadAlbum(albumTitle, artist))
         coVerify { loadAlbumUseCase.execute(albumTitle, artist) }
 
         viewModel.setIntent(SongListViewModel.Intent.PlaySong(1))

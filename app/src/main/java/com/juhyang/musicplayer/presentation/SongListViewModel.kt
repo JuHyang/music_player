@@ -20,7 +20,7 @@ class SongListViewModel(
 ) : ViewModel() {
     sealed class Intent {
         object Idle: Intent()
-        class LoadSongs(val albumTitle: String, val artist: String): Intent()
+        class LoadAlbum(val albumTitle: String, val artist: String): Intent()
         object PlayAll: Intent()
         class PlaySong(val index: Int): Intent()
         object PlayRandom: Intent()
@@ -72,7 +72,7 @@ class SongListViewModel(
     private fun handleIntent(intent: Intent) {
         when (intent) {
             is Intent.Idle -> {}
-            is Intent.LoadSongs -> {
+            is Intent.LoadAlbum -> {
                 handleLoadSongs(intent.albumTitle, intent.artist)
             }
             is Intent.PlayAll -> {

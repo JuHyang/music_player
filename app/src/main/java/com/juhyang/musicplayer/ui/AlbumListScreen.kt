@@ -16,11 +16,11 @@ import com.juhyang.musicplayer.presentation.AlbumListViewModel
 @Composable
 fun AlbumListScreen(viewModel: AlbumListViewModel) {
     viewModel.setIntent(AlbumListViewModel.Intent.LoadAlbums)
-    handleViewState(viewModel = viewModel)
+    handleAlbumListViewState(viewModel = viewModel)
 }
 
 @Composable
-fun handleViewState(viewModel: AlbumListViewModel) {
+private fun handleAlbumListViewState(viewModel: AlbumListViewModel) {
     val viewState by viewModel.viewState.collectAsState()
     when(viewState) {
         is AlbumListViewModel.ViewState.Idle -> {}
@@ -35,7 +35,7 @@ fun handleViewState(viewModel: AlbumListViewModel) {
 }
 
 @Composable
-fun AlbumGridView(albumList: List<Album>, onAlbumClick: (Album) -> Unit) {
+private fun AlbumGridView(albumList: List<Album>, onAlbumClick: (Album) -> Unit) {
     LazyVerticalGrid(
         columns = GridCells.Fixed(2),
         modifier = Modifier,
@@ -47,7 +47,7 @@ fun AlbumGridView(albumList: List<Album>, onAlbumClick: (Album) -> Unit) {
 }
 
 @Composable
-fun AlbumItem(album: Album, onAlbumClick: (Album) -> Unit) {
+private fun AlbumItem(album: Album, onAlbumClick: (Album) -> Unit) {
     Column(
         modifier = Modifier.clickable { onAlbumClick(album) },
     ) {
