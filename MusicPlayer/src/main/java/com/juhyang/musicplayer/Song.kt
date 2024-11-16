@@ -1,4 +1,4 @@
-package com.juhyang.musicplayer.domain.model
+package com.juhyang.musicplayer
 
 
 data class Song(

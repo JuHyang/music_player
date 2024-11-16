@@ -1,6 +1,7 @@
 package com.juhyang.musicplayer.domain.model
 
 import android.net.Uri
+import com.juhyang.musicplayer.Song
 
 
 data class Album (

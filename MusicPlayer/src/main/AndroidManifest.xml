@@ -2,6 +2,9 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" /> <!-- notification service 권한 -->
     <application>
-        <service android:name=".internal.MusicService" />
+        <service
+            android:name=".internal.MusicService"
+            android:enabled="true"
+            android:exported="true" />
     </application>
 </manifest>

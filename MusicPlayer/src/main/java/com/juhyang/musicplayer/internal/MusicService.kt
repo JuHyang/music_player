@@ -9,6 +9,7 @@ import android.media.MediaPlayer
 import android.os.Binder
 import android.os.Build
 import android.os.IBinder
+import android.util.Log
 import androidx.core.app.NotificationCompat
 
 
@@ -27,11 +28,12 @@ internal class MusicService: Service() {
     private val mediaPlayer: MediaPlayer = MediaPlayer()
     private val mBinder: MusicServiceBinder = MusicServiceBinder()
     override fun onBind(intent: Intent?): IBinder? {
-        return null
+        return mBinder
     }
 
     override fun onCreate() {
         super.onCreate()
+        Log.d("##Arthur", "MusicService onCreate")
         startForegroundService()
     }
 
@@ -55,6 +57,8 @@ internal class MusicService: Service() {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        Log.d("##Arthur", "MusicService onStartCommand: onStartCommand")
+        startForegroundService()
         return START_STICKY
     }
 

@@ -1,6 +1,6 @@
 package com.juhyang.musicplayer.data.model
 
-import com.juhyang.musicplayer.domain.model.Song
+import com.juhyang.musicplayer.Song
 
 
 class SongMapper {

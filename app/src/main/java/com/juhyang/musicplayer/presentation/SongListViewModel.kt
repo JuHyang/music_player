@@ -3,7 +3,7 @@ package com.juhyang.musicplayer.presentation
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.juhyang.musicplayer.domain.model.Album
-import com.juhyang.musicplayer.domain.model.Song
+import com.juhyang.musicplayer.Song
 import com.juhyang.musicplayer.domain.usecase.LoadAlbumUseCase
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers

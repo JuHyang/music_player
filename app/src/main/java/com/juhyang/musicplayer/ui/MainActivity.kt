@@ -96,7 +96,7 @@ class MainActivity : ComponentActivity() {
         when (viewAction) {
             is SongListViewModel.ViewAction.Idle -> {}
             is SongListViewModel.ViewAction.PlaySongs -> {
-                musicPlayer.start("")
+                musicPlayer.play(viewAction.songs)
             }
         }
     }

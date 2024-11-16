@@ -1,7 +1,6 @@
 package com.juhyang.musicplayer
 
 import com.juhyang.musicplayer.domain.model.Album
-import com.juhyang.musicplayer.domain.model.Song
 import com.juhyang.musicplayer.domain.usecase.LoadAlbumUseCase
 import com.juhyang.musicplayer.presentation.SongListViewModel
 import io.mockk.MockKAnnotations

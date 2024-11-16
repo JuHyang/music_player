@@ -8,7 +8,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import com.juhyang.musicplayer.domain.model.Song
+import com.juhyang.musicplayer.Song
 import com.juhyang.musicplayer.presentation.SongListViewModel
 
 
