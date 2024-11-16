@@ -15,6 +15,7 @@ import com.juhyang.musicplayer.presentation.AlbumListViewModel
 
 @Composable
 fun AlbumListScreen(viewModel: AlbumListViewModel) {
+    viewModel.setIntent(AlbumListViewModel.Intent.LoadAlbums)
     handleViewState(viewModel = viewModel)
 }
 
@@ -25,7 +26,7 @@ fun handleViewState(viewModel: AlbumListViewModel) {
         is AlbumListViewModel.ViewState.Idle -> {}
         is AlbumListViewModel.ViewState.Loaded -> {
             AlbumGridView(albumList = (viewState as AlbumListViewModel.ViewState.Loaded).albumList) {
-                viewModel.setAction(AlbumListViewModel.Intent.ClickAlbum(it))
+                viewModel.setIntent(AlbumListViewModel.Intent.ClickAlbum(it))
             }
         }
         is AlbumListViewModel.ViewState.ErrorPermissionDenied -> {}

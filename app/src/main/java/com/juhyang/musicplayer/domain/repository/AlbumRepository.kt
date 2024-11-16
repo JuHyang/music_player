@@ -5,5 +5,6 @@ import kotlinx.coroutines.flow.Flow
 
 
 interface AlbumRepository {
-    suspend fun getAlbumList(): Flow<List<Album>>
+    suspend fun getAlbumList(refresh: Boolean = false): Flow<List<Album>>
+    suspend fun getAlbum(albumTitle: String, artist: String, refresh: Boolean = false): Flow<Album>
 }

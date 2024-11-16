@@ -44,7 +44,7 @@ class AlbumViewModelTests : CoroutineTest() {
     fun `화면 로딩 시저장소 접근권한이 없다면 요청한다`() = runTest {
         coEvery { checkStoragePermissionUseCase.execute() } returns flowOf(PermissionStatus.REVOKED)
 
-        viewModel.setAction(AlbumListViewModel.Intent.OnResume)
+        viewModel.setIntent(AlbumListViewModel.Intent.LoadAlbums)
         coVerify { checkStoragePermissionUseCase.execute() }
 
         assert(viewModel.viewAction.value is AlbumListViewModel.ViewAction.RequestStoragePermission)
@@ -54,11 +54,11 @@ class AlbumViewModelTests : CoroutineTest() {
     fun `화면 로딩 시저장소 접근권한이 없다면 요청하고, 거절하면 에러화면을 보여준다`() = runTest {
         coEvery { checkStoragePermissionUseCase.execute() } returns flowOf(PermissionStatus.REVOKED)
 
-        viewModel.setAction(AlbumListViewModel.Intent.OnResume)
+        viewModel.setIntent(AlbumListViewModel.Intent.LoadAlbums)
         coVerify { checkStoragePermissionUseCase.execute() }
 
         assert(viewModel.viewAction.value is AlbumListViewModel.ViewAction.RequestStoragePermission)
-        viewModel.setAction(AlbumListViewModel.Intent.RevokeStoragePermission)
+        viewModel.setIntent(AlbumListViewModel.Intent.RevokeStoragePermission)
 
         assert(viewModel.viewState.value is AlbumListViewModel.ViewState.ErrorPermissionDenied)
     }
@@ -68,11 +68,11 @@ class AlbumViewModelTests : CoroutineTest() {
         coEvery { checkStoragePermissionUseCase.execute() } returns flowOf(PermissionStatus.REVOKED)
         coEvery { loadAlbumUseCase.execute() } returns flowOf(listOf(albumA))
 
-        viewModel.setAction(AlbumListViewModel.Intent.OnResume)
+        viewModel.setIntent(AlbumListViewModel.Intent.LoadAlbums)
         coVerify { checkStoragePermissionUseCase.execute() }
 
         assert(viewModel.viewAction.value is AlbumListViewModel.ViewAction.RequestStoragePermission)
-        viewModel.setAction(AlbumListViewModel.Intent.GrantStoragePermission)
+        viewModel.setIntent(AlbumListViewModel.Intent.GrantStoragePermission)
 
         coVerify { loadAlbumUseCase.execute() }
         assert(viewModel.viewState.value is AlbumListViewModel.ViewState.Loaded)
@@ -84,7 +84,7 @@ class AlbumViewModelTests : CoroutineTest() {
         coEvery { checkStoragePermissionUseCase.execute() } returns flowOf(PermissionStatus.GRANTED)
         coEvery { loadAlbumUseCase.execute() } returns flowOf(listOf(albumA))
 
-        viewModel.setAction(AlbumListViewModel.Intent.OnResume)
+        viewModel.setIntent(AlbumListViewModel.Intent.LoadAlbums)
         coVerify { checkStoragePermissionUseCase.execute() }
         coVerify { loadAlbumUseCase.execute() }
 
@@ -97,7 +97,7 @@ class AlbumViewModelTests : CoroutineTest() {
         coEvery { checkStoragePermissionUseCase.execute() } returns flowOf(PermissionStatus.GRANTED)
         coEvery { loadAlbumUseCase.execute() } returns flowOf(emptyList())
 
-        viewModel.setAction(AlbumListViewModel.Intent.OnResume)
+        viewModel.setIntent(AlbumListViewModel.Intent.LoadAlbums)
         coVerify { checkStoragePermissionUseCase.execute() }
         coVerify { loadAlbumUseCase.execute() }
 
@@ -106,7 +106,7 @@ class AlbumViewModelTests : CoroutineTest() {
 
     @Test
     fun `앨범 클릭하면 곡 목록화면으로 넘어간다`() = runTest {
-        viewModel.setAction(AlbumListViewModel.Intent.ClickAlbum(albumB))
+        viewModel.setIntent(AlbumListViewModel.Intent.ClickAlbum(albumB))
 
         val viewActionValue = viewModel.viewAction.value
         assert(viewActionValue is AlbumListViewModel.ViewAction.MoveMusicList)

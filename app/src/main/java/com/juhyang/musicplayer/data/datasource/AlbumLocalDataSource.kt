@@ -21,7 +21,7 @@ class AlbumLocalDataSource(
     }
 
     private fun mapToAlbumFromMp3Data(mp3DataList: List<Mp3Data>): List<Album> {
-        return mp3DataList.groupBy { Triple(it.albumName, it.artistName, it.albumCoverUri) }
+        return mp3DataList.groupBy { Triple(it.albumTitle, it.artistName, it.albumCoverUri) }
             .map { (key, mp3Files) ->
                 val songMapper = SongMapper()
                 val songs = mp3Files.map { songMapper.map(it) }
@@ -71,7 +71,7 @@ class AlbumLocalDataSource(
                 val filePath = it.getString(dataColumn)
                 val fileName = it.getString(nameColumn)
                 val title = titleColumn?.let { col -> it.getString(col) }
-                val albumName = albumColumn?.let { col -> it.getString(col) }
+                val albumTitle = albumColumn?.let { col -> it.getString(col) }
                 val artistName = artistColumn?.let { col -> it.getString(col) }
                 val albumId = albumIdColumn?.let { col -> it.getLong(col) }
                 val duration = durationColumn?.let { col -> it.getLong(col) }
@@ -85,7 +85,7 @@ class AlbumLocalDataSource(
                     Mp3Data(
                         title ?: fileName,
                         filePath,
-                        albumName ?: "Unknown",
+                        albumTitle ?: "Unknown",
                         artistName ?: "Unknown",
                         albumArtUri,
                         duration

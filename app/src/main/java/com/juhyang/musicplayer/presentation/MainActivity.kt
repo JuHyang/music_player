@@ -54,7 +54,7 @@ class MainActivity : ComponentActivity() {
 
         musicPlayer.start("")
 
-        viewModel.setAction(AlbumListViewModel.Intent.OnResume)
+        viewModel.setIntent(AlbumListViewModel.Intent.LoadAlbums)
     }
 
     override fun onPause() {
@@ -103,7 +103,6 @@ class MainActivity : ComponentActivity() {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MyApp(navController: NavHostController, albumListViewModel: AlbumListViewModel) {
-//    val navController = rememberNavController()
     Scaffold(
         bottomBar = { MusicPlayerView() }
     ) {paddingValues ->
@@ -115,12 +114,12 @@ fun MyApp(navController: NavHostController, albumListViewModel: AlbumListViewMod
         ) {
             composable("albumList") { AlbumListScreen(viewModel = albumListViewModel)}
             composable(
-                "albumDetail/{albumName}/{artistName}",
-                arguments = listOf(navArgument("albumName") { type = NavType.StringType}, navArgument("artistName") { type = NavType.StringType})
+                "albumDetail/{albumTitle}/{artistName}",
+                arguments = listOf(navArgument("albumTitle") { type = NavType.StringType}, navArgument("artistName") { type = NavType.StringType})
             ) { backStackEntry ->
-                val albumName = backStackEntry.arguments?.getString("albumName") ?: ""
+                val albumTitle = backStackEntry.arguments?.getString("albumTitle") ?: ""
                 val artistName = backStackEntry.arguments?.getString("artistName") ?: ""
-                Log.d("##Arthur", "albumName MyApp: albumName : ${albumName}")
+                Log.d("##Arthur", "albumTitle MyApp: albumTitle : ${albumTitle}")
                 Log.d("##Arthur", "artistName MyApp: artistName : ${artistName}")
                 AlbumDetailScreen()
             }

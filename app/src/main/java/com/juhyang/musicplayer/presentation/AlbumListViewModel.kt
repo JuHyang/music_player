@@ -22,7 +22,7 @@ class AlbumListViewModel(
 ): ViewModel() {
     sealed class Intent {
         object Idle: Intent()
-        object OnResume: Intent()
+        object LoadAlbums: Intent()
         object GrantStoragePermission: Intent()
         object RevokeStoragePermission: Intent()
         class ClickAlbum(val album: Album): Intent()
@@ -50,13 +50,13 @@ class AlbumListViewModel(
 
     init {
         viewModelScope.launch(mainDispatcher) {
-            _intent.collect { action ->
-                handleAction(action)
+            _intent.collect { intent ->
+                handleIntent(intent)
             }
         }
     }
 
-    fun setAction(intent: Intent) {
+    fun setIntent(intent: Intent) {
         viewModelScope.launch(mainDispatcher) {
             _intent.emit(intent)
         }
@@ -74,10 +74,10 @@ class AlbumListViewModel(
         }
     }
 
-    private fun handleAction(intent: Intent) {
+    private fun handleIntent(intent: Intent) {
         when (intent) {
             is Intent.Idle -> {}
-            is Intent.OnResume -> {
+            is Intent.LoadAlbums -> {
                 handleOnResume()
             }
             is Intent.GrantStoragePermission -> {
