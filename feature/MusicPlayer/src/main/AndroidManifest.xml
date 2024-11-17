@@ -3,7 +3,7 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" /> <!-- notification service 권한 -->
     <application>
         <service
-            android:name=".internal.MusicService"
+            android:name=".internal.presentation.MusicService"
             android:enabled="true"
             android:exported="true" />
     </application>

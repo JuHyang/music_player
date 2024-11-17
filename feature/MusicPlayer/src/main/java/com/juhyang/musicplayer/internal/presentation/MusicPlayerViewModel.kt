@@ -1,4 +1,4 @@
-package com.juhyang.musicplayer.internal
+package com.juhyang.musicplayer.internal.presentation
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope

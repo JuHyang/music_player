@@ -148,6 +148,9 @@ fun MyApp(navController: NavHostController, albumListViewModel: AlbumListViewMod
         sheetContent = {
             MusicPlayerView(
                 bottomSheetState = bottomSheetState,
+                onExpand = {
+                    coroutineScope.launch { bottomSheetState.expand() }
+                },
                 onCollapse = {
                     coroutineScope.launch { bottomSheetState.collapse() }
                 }

@@ -1,4 +1,4 @@
-package com.juhyang.musicplayer.internal
+package com.juhyang.musicplayer.internal.presentation
 
 import android.app.Notification
 import android.app.NotificationChannel
@@ -166,8 +166,8 @@ internal class MusicService: Service() {
 
     fun stop() {
         mediaPlayer.stop()
+        _playingState.value = _playingState.value.copy(isPlaying = false)
         stopUpdatingPosition()
-        // service 종료?
     }
 
     fun isPlaying(): Boolean {
@@ -177,10 +177,14 @@ internal class MusicService: Service() {
     fun resume() {
         mediaPlayer.start()
         startUpdatingPosition()
+
+        _playingState.value = _playingState.value.copy(isPlaying = true)
     }
 
     fun pause() {
         mediaPlayer.pause()
+
+        _playingState.value = _playingState.value.copy(isPlaying = false)
     }
 
     fun seekTo(position: Int) {
@@ -205,7 +209,7 @@ internal class MusicService: Service() {
     private fun startUpdatingPosition() {
         stopUpdatingPosition()
         updateJob = CoroutineScope(Dispatchers.IO).launch {
-            while (mediaPlayer.isPlaying) {
+            while (_playingState.value.isPlaying) {
                 _playingState.value = _playingState.value.copy(
                     currentPosition = mediaPlayer.currentPosition
                 )
