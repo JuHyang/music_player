@@ -245,7 +245,7 @@ internal class MusicService : Service() {
         return START_STICKY
     }
 
-    private val playList: List<Song>
+    private val _playList: List<Song>
         get() {
             return _playerState.value.playList
         }
@@ -263,12 +263,12 @@ internal class MusicService : Service() {
 
     fun play(songs: List<Song>) {
         _playerState.value = _playerState.value.copy(playList = songs, currentPlayingSongIndex = 0)
-        play(playList[currentPlayingSongIndex])
+        play(getPlayList()[currentPlayingSongIndex])
     }
 
     fun play(index: Int) {
         _playerState.value = _playerState.value.copy(currentPlayingSongIndex = index)
-        play(playList[currentPlayingSongIndex])
+        play(getPlayList()[currentPlayingSongIndex])
     }
 
     private fun play(song: Song) {
@@ -304,7 +304,7 @@ internal class MusicService : Service() {
         }
 
         _playerState.value = _playerState.value.copy(currentPlayingSongIndex = 0)
-        play(playList[currentPlayingSongIndex])
+        play(getPlayList()[currentPlayingSongIndex])
         pause()
     }
 
@@ -316,11 +316,11 @@ internal class MusicService : Service() {
 
         val shuffleMode = _playerState.value.shuffleMode
         if (shuffleMode == ShuffleMode.ON) {
-            return playList.random()
+            return getPlayList().random()
         }
 
         var newIndex = currentPlayingSongIndex + 1
-        if (newIndex >= playList.size) {
+        if (newIndex >= getPlayList().size) {
             if (repeatMode == RepeatMode.ALL) {
                 newIndex = 0
             } else {
@@ -329,7 +329,7 @@ internal class MusicService : Service() {
         }
 
         _playerState.value = _playerState.value.copy(currentPlayingSongIndex = newIndex)
-        return playList[currentPlayingSongIndex]
+        return getPlayList()[currentPlayingSongIndex]
     }
 
     fun playPreviousSong() {
@@ -344,10 +344,10 @@ internal class MusicService : Service() {
     private fun getPreviousSong(): Song {
         val previousIndex = currentPlayingSongIndex - 1
         if (previousIndex < 0) {
-            _playerState.value = _playerState.value.copy(currentPlayingSongIndex =  playList.size - 1)
+            _playerState.value = _playerState.value.copy(currentPlayingSongIndex =  getPlayList().size - 1)
         }
 
-        return playList[currentPlayingSongIndex]
+        return getPlayList()[currentPlayingSongIndex]
     }
 
     fun stop() {
@@ -387,7 +387,7 @@ internal class MusicService : Service() {
     }
 
     fun getPlayList(): List<Song> {
-        return playList
+        return _playList
     }
 
     private var updateJob: Job? = null

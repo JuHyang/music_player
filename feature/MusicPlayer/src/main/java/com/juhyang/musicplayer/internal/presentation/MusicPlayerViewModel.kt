@@ -26,10 +26,18 @@ internal class MusicPlayerViewModel(
         object Next: Intent()
         object ChangeShuffleMode: Intent()
         object ChangeRepeatMode: Intent()
+        object TogglePlayList: Intent()
         class SeekTo(val position: Int): Intent()
     }
 
+    sealed class ViewState {
+        object MusicPlayer: ViewState()
+        object PlayList: ViewState()
+    }
+
     private val _intent: MutableStateFlow<Intent> = MutableStateFlow(Intent.Idle)
+    private val _viewState: MutableStateFlow<ViewState> = MutableStateFlow(ViewState.MusicPlayer)
+    val viewState: StateFlow<ViewState> = _viewState
 
     val playerState: StateFlow<PlayerState>
         get() { return musicPlayer.getPlayerState() }
@@ -47,6 +55,12 @@ internal class MusicPlayerViewModel(
     fun setIntent(intent: Intent) {
         viewModelScope.launch(mainDispatcher) {
             _intent.emit(intent)
+        }
+    }
+
+     private fun setViewState(viewState: ViewState) {
+        viewModelScope.launch(mainDispatcher) {
+            _viewState.emit(viewState)
         }
     }
 
@@ -77,6 +91,14 @@ internal class MusicPlayerViewModel(
             }
             is Intent.ChangeShuffleMode -> {
                 musicPlayer.changeShuffleMode()
+            }
+            is Intent.TogglePlayList -> {
+                val newViewState  = if (_viewState.value == ViewState.MusicPlayer) {
+                    ViewState.PlayList
+                } else {
+                    ViewState.MusicPlayer
+                }
+                setViewState(newViewState)
             }
         }
         _intent.value = Intent.Idle

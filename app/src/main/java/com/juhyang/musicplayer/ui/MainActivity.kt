@@ -156,7 +156,7 @@ fun MyApp(navController: NavHostController, albumListViewModel: AlbumListViewMod
                 }
             )
         },
-        sheetPeekHeight = 60.dp
+        sheetPeekHeight = 150.dp
     ) {paddingValues ->
         NavHost(
             navController = navController,

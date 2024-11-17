@@ -18,7 +18,6 @@ class AlbumListViewModel(
     private val checkStoragePermissionUseCase: CheckStoragePermissionUseCase,
     private val mainDispatcher:  CoroutineDispatcher = Dispatchers.Main,
     private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
-    private val defaultDispatcher: CoroutineDispatcher = Dispatchers.Default
 ): ViewModel() {
     sealed class Intent {
         object Idle: Intent()
