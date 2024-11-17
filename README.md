@@ -2,6 +2,15 @@
 
 Compose 를 활용한 간단한 음악 플레이어
 
+<p align="center">  
+  <img src="https://github.com/user-attachments/assets/f0c1bb0c-a4a5-4626-9785-2f011db50b51" align="center" width="15%">
+  <img src="https://github.com/user-attachments/assets/92337b35-e8c1-4e49-a622-36122f8df2c8" align="center" width="15%">
+  <img src="https://github.com/user-attachments/assets/a4895f4f-295b-4ca7-9cfb-d82a00fa150c" align="center" width="15%">
+  <img src="https://github.com/user-attachments/assets/443586aa-1850-4816-a63b-ee5a066e2523" align="center" width="15%">
+  <img src="https://github.com/user-attachments/assets/bc96aa98-3a6c-4941-8ee1-35c1451b5f1a" align="center" width="15%">
+</p>
+
+
 ## 사용 기술
 - Compose
 - MediaPlayer
