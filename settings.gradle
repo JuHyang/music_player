@@ -15,4 +15,5 @@ dependencyResolutionManagement {
 
 rootProject.name = "MusicPlayer"
 include ':app'
-include ':MusicPlayer'
+include ':feature:MusicPlayer'
+include ':lib:permission'

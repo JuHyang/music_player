@@ -2,18 +2,18 @@ package com.juhyang.musicplayer.data.repository
 
 import android.Manifest
 import android.content.Context
-import android.content.pm.PackageManager
 import android.os.Build
 import androidx.annotation.RequiresApi
-import androidx.core.content.ContextCompat
 import com.juhyang.musicplayer.domain.model.PermissionStatus
 import com.juhyang.musicplayer.domain.repository.PermissionRepository
+import com.juhyang.permission.PermissionChecker
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 
 
 class PermissionRepositoryImpl(
-    private val context: Context
+    private val context: Context,
+    private val permissionChecker: PermissionChecker,
 ): PermissionRepository {
     companion object {
         const val READ_EXTERNAL_STORAGE_PERMISSION = Manifest.permission.READ_EXTERNAL_STORAGE
@@ -21,19 +21,14 @@ class PermissionRepositoryImpl(
         const val READ_MEDIA_AUDIO_PERMISSION = Manifest.permission.READ_MEDIA_AUDIO
     }
     override suspend fun isGrantStoragePermission(): Flow<PermissionStatus> {
-        val permissionStatus = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            checkPermission(READ_MEDIA_AUDIO_PERMISSION)
-        } else {
-            checkPermission(READ_EXTERNAL_STORAGE_PERMISSION)
-        }
-        return flowOf(permissionStatus)
-    }
+        val grantStatus = permissionChecker.isReadAudioPermissionGranted(context)
 
-    private fun checkPermission(manifestPermission: String): PermissionStatus {
-        return if (ContextCompat.checkSelfPermission(context, manifestPermission) == PackageManager.PERMISSION_GRANTED) {
+        val result = if (grantStatus) {
             PermissionStatus.GRANTED
         } else {
             PermissionStatus.REVOKED
         }
+
+        return flowOf(result)
     }
 }

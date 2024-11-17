@@ -25,6 +25,8 @@ import com.juhyang.musicplayer.di.SongListDiContainer
 import com.juhyang.musicplayer.presentation.AlbumListViewModel
 import com.juhyang.musicplayer.presentation.SongListViewModel
 import com.juhyang.musicplayer.ui.theme.MusicPlayerTheme
+import com.juhyang.permission.GrantStatus
+import com.juhyang.permission.PermissionChecker
 import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
@@ -32,6 +34,7 @@ class MainActivity : ComponentActivity() {
     private lateinit var songListViewModel: SongListViewModel
     private val musicPlayer by lazy { MusicPlayer() }
     private var navController: NavHostController? = null
+    private val permissionChecker by lazy { PermissionChecker.instance }
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -109,11 +112,29 @@ class MainActivity : ComponentActivity() {
             PermissionRepositoryImpl.READ_EXTERNAL_STORAGE_PERMISSION
         }
         if (shouldShowRequestPermissionRationale(manifestPermission)) {
-            Log.d("##Arthur", "MainActivity bindViewModel: viewState : 사용자 거부 !")
-            // TODO: 설정화면으로 보내버리기
+            lifecycleScope.launch {
+                permissionChecker.startSettingsForwardReadAudioPermissionActivity(this@MainActivity)
+                    .collect {
+                        Log.d("##Arthur", "MainActivity requestStoragePermission AA : $it")
+                        if (it.grantStatus == GrantStatus.GRANTED) {
+                            albumListViewModel.setIntent(AlbumListViewModel.Intent.GrantStoragePermission)
+                        } else {
+                            albumListViewModel.setIntent(AlbumListViewModel.Intent.RevokeStoragePermission)
+                        }
+                    }
+            }
         } else {
-            Log.d("##Arthur", "MainActivity bindViewModel: viewState : 사용자 거부는 안함! !")
-            requestPermissions(arrayOf(manifestPermission), 100)
+            lifecycleScope.launch {
+                permissionChecker.requestReadAudioPermissionIfNeeded(this@MainActivity)
+                    .collect {
+                        Log.d("##Arthur", "MainActivity requestStoragePermission: BB  $it")
+                        if (it.grantStatus == GrantStatus.GRANTED) {
+                            albumListViewModel.setIntent(AlbumListViewModel.Intent.GrantStoragePermission)
+                        } else {
+                            albumListViewModel.setIntent(AlbumListViewModel.Intent.RevokeStoragePermission)
+                        }
+                    }
+            }
         }
     }
 }

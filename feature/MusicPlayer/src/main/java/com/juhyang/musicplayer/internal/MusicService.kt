@@ -15,10 +15,6 @@ import androidx.core.app.NotificationCompat
 
 internal class MusicService: Service() {
 
-    companion object {
-        const val filePathExtraKey = "MUSIC_FILE_PATH"
-    }
-
     inner class MusicServiceBinder: Binder() {
         fun getService(): MusicService {
             return this@MusicService
@@ -27,7 +23,7 @@ internal class MusicService: Service() {
 
     private val mediaPlayer: MediaPlayer = MediaPlayer()
     private val mBinder: MusicServiceBinder = MusicServiceBinder()
-    override fun onBind(intent: Intent?): IBinder? {
+    override fun onBind(intent: Intent?): IBinder {
         return mBinder
     }
 

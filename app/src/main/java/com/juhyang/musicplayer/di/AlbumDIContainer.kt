@@ -12,6 +12,7 @@ import com.juhyang.musicplayer.domain.usecase.CheckStoragePermissionUseCaseImpl
 import com.juhyang.musicplayer.domain.usecase.LoadAlbumListUseCase
 import com.juhyang.musicplayer.domain.usecase.LoadAlbumListUseCaseImpl
 import com.juhyang.musicplayer.presentation.AlbumListViewModel
+import com.juhyang.permission.PermissionChecker
 
 
 class AlbumDIContainer {
@@ -36,6 +37,10 @@ class AlbumDIContainer {
     }
 
     private fun createPermissionRepository(context: Context): PermissionRepository {
-        return PermissionRepositoryImpl(context)
+        return PermissionRepositoryImpl(context, getPermissionChecker())
+    }
+
+    fun getPermissionChecker(): PermissionChecker {
+        return PermissionChecker.instance
     }
 }
