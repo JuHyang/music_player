@@ -5,13 +5,12 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.provider.Settings
-import android.util.Log
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.juhyang.permission.GrantStatus
-import com.juhyang.permission.PermissionChecker
+import com.juhyang.permission.PermissionCheckerImpl
 import com.juhyang.permission.PermissionResult
 import com.juhyang.permission.internal.PermissionMapper
 import kotlinx.coroutines.launch
@@ -46,7 +45,7 @@ internal class PermissionForwardSettingsActivity : AppCompatActivity() {
         manifestPermission = intent.getStringExtra(MANIFEST_PERMISSION_NAME) ?: ""
         if (manifestPermission.isEmpty()) {
             lifecycleScope.launch {
-                PermissionChecker.instance.permissionResultFlow.emit(listOf(PermissionResult(manifestPermission, GrantStatus.REVOKED)))
+                PermissionCheckerImpl.instance.permissionResultFlow.emit(listOf(PermissionResult(manifestPermission, GrantStatus.REVOKED)))
             }
             finish()
         }
@@ -67,7 +66,7 @@ internal class PermissionForwardSettingsActivity : AppCompatActivity() {
             }
 
             lifecycleScope.launch {
-                PermissionChecker.instance.permissionResultFlow.emit(listOf(PermissionResult(manifestPermission, grantStatus)))
+                PermissionCheckerImpl.instance.permissionResultFlow.emit(listOf(PermissionResult(manifestPermission, grantStatus)))
             }
 
             finish()

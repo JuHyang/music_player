@@ -8,7 +8,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.lifecycle.lifecycleScope
 import com.juhyang.permission.GrantStatus
-import com.juhyang.permission.PermissionChecker
+import com.juhyang.permission.PermissionCheckerImpl
 import com.juhyang.permission.PermissionResult
 import kotlinx.coroutines.launch
 
@@ -52,7 +52,7 @@ internal class PermissionActivity: AppCompatActivity() {
         }
 
         lifecycleScope.launch {
-            PermissionChecker.instance.permissionResultFlow.emit(permissionResultList)
+            PermissionCheckerImpl.instance.permissionResultFlow.emit(permissionResultList)
         }
         finish()
     }

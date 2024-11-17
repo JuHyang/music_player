@@ -169,9 +169,10 @@ internal class MusicService : Service() {
             notificationManager.createNotificationChannel(mChannel)
         }
 
-        CoroutineScope(Dispatchers.Main).launch {
-            PermissionChecker.instance.requestNotificationPermissionIfNeeded(this@MusicService).collect {
-                startForeground(NOTIFICATION_ID, getNotification())
+        startForeground(NOTIFICATION_ID, getNotification())
+        if (!PermissionChecker.instance.isNotificationPermissionGranted(this)) {
+            CoroutineScope(Dispatchers.Main).launch {
+                PermissionChecker.instance.requestNotificationPermissionIfNeeded(this@MusicService).collect {}
             }
         }
     }

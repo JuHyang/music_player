@@ -15,6 +15,12 @@ Compose 를 활용한 간단한 음악 플레이어
 - Compose
 - MediaPlayer
 - MediaSession
+- Coil
+  - Picasso / Glide 와 같은 이미지 로딩 라이브러리
+  - 위의 두 라이브러리와 달리 Compose 에 최적화되어 있어서 선택.
+- Media3 안쓴 이유
+  - 뭔가 치트키 같은 기분이라 사용하지 않음.
+  - ExoPlayer + Media3 를 사용하면 더 편하게 만들 수 있었을듯 ?
 
 ## 구성
 - app
@@ -30,6 +36,7 @@ Compose 를 활용한 간단한 음악 플레이어
     - 음악 재생 시간이 변경되면, MediaSession 을 통해 Notification 에서도 변경된 시간을 표시합니다.
     - MusicPlayer 를 통해 음악 재생 상태를 제어할 수 있습니다.
       - 이는 싱글톤으로 구현되어 있으며, MusicPlayer.instance 를 통해 접근할 수 있습니다.
+    - Media 는 블루투스의 MediaButton 도 지원합니다.
      
 ```kotlin
 // Views
