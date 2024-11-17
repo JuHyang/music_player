@@ -23,6 +23,7 @@ import com.juhyang.musicplayer.internal.model.PlayerState
 import com.juhyang.musicplayer.internal.model.PlayingState
 import com.juhyang.musicplayer.internal.model.RepeatMode
 import com.juhyang.musicplayer.internal.model.ShuffleMode
+import com.juhyang.permission.PermissionChecker
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -168,7 +169,11 @@ internal class MusicService : Service() {
             notificationManager.createNotificationChannel(mChannel)
         }
 
-        startForeground(NOTIFICATION_ID, getNotification())
+        CoroutineScope(Dispatchers.Main).launch {
+            PermissionChecker.instance.requestNotificationPermissionIfNeeded(this@MusicService).collect {
+                startForeground(NOTIFICATION_ID, getNotification())
+            }
+        }
     }
 
     private fun getNotification(): Notification {
