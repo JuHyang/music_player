@@ -2,7 +2,6 @@ package com.juhyang.musicplayer.ui
 
 import android.os.Build
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.padding
@@ -41,7 +40,6 @@ class MainActivity : ComponentActivity() {
     private var navController: NavHostController? = null
     private val permissionChecker by lazy { PermissionChecker.instance }
 
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val albumDiContainer = AlbumDIContainer()
@@ -62,7 +60,6 @@ class MainActivity : ComponentActivity() {
 
     override fun onResume() {
         super.onResume()
-        albumListViewModel
         musicPlayer.onResume(this)
     }
 
@@ -75,14 +72,12 @@ class MainActivity : ComponentActivity() {
     private fun bindViewModel() {
         lifecycleScope.launch {
             albumListViewModel.viewAction.collect {
-                Log.d("##Arthur", "MainActivity bindViewModel: AlbumListViewModelViewAction : ${it}")
                 handleAlbumViewAction(it)
             }
 
         }
         lifecycleScope.launch {
             songListViewModel.viewAction.collect {
-                Log.d("##Arthur", "MainActivity bindViewModel: SongListViewModelViewACtion : ${it}")
                 handleSongListViewAction(it)
             }
         }
@@ -120,7 +115,6 @@ class MainActivity : ComponentActivity() {
             lifecycleScope.launch {
                 permissionChecker.startSettingsForwardReadAudioPermissionActivity(this@MainActivity)
                     .collect {
-                        Log.d("##Arthur", "MainActivity requestStoragePermission AA : $it")
                         if (it.grantStatus == GrantStatus.GRANTED) {
                             albumListViewModel.setIntent(AlbumListViewModel.Intent.GrantStoragePermission)
                         } else {
@@ -132,7 +126,6 @@ class MainActivity : ComponentActivity() {
             lifecycleScope.launch {
                 permissionChecker.requestReadAudioPermissionIfNeeded(this@MainActivity)
                     .collect {
-                        Log.d("##Arthur", "MainActivity requestStoragePermission: BB  $it")
                         if (it.grantStatus == GrantStatus.GRANTED) {
                             albumListViewModel.setIntent(AlbumListViewModel.Intent.GrantStoragePermission)
                         } else {

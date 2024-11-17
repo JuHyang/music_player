@@ -44,7 +44,6 @@ internal class PermissionForwardSettingsActivity : AppCompatActivity() {
 
     private fun checkManifestPermissionEmpty() {
         manifestPermission = intent.getStringExtra(MANIFEST_PERMISSION_NAME) ?: ""
-        Log.d("##Arthur", "PermissionForwardSettingsActivity checkManifestPermissionEmpty: manifestPermission : ${manifestPermission}")
         if (manifestPermission.isEmpty()) {
             lifecycleScope.launch {
                 PermissionChecker.instance.permissionResultFlow.emit(listOf(PermissionResult(manifestPermission, GrantStatus.REVOKED)))

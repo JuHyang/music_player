@@ -9,7 +9,6 @@ import android.media.MediaPlayer
 import android.os.Binder
 import android.os.Build
 import android.os.IBinder
-import android.util.Log
 import androidx.core.app.NotificationCompat
 import com.juhyang.musicplayer.Song
 import com.juhyang.musicplayer.internal.model.PlayerState
@@ -20,12 +19,19 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
 
 internal class MusicService: Service() {
+    companion object {
+        private var _playerState: MutableStateFlow<PlayerState> = MutableStateFlow(PlayerState())
+        var playerState: StateFlow<PlayerState> = _playerState
+        private var _playingState: MutableStateFlow<PlayingState> = MutableStateFlow(PlayingState())
+        var playingState: StateFlow<PlayingState> = _playingState
+    }
+
     inner class MusicServiceBinder: Binder() {
         fun getService(): MusicService {
             return this@MusicService
@@ -43,13 +49,7 @@ internal class MusicService: Service() {
         startForegroundService()
 
         mediaPlayer.setOnCompletionListener {
-            stopUpdatingPosition() // 재생 시간 업데이트 종료
             playNextSong()
-        }
-
-        mediaPlayer.setOnPreparedListener {
-            mediaPlayer.start()
-            startUpdatingPosition() // 재생 시간 업데이트 시작
         }
     }
 
@@ -77,8 +77,6 @@ internal class MusicService: Service() {
         return START_STICKY
     }
 
-    private var _playerState: MutableStateFlow<PlayerState> = MutableStateFlow(PlayerState())
-    private var _playingState: MutableStateFlow<PlayingState> = MutableStateFlow(PlayingState())
     private var playList: MutableList<Song> = mutableListOf()
     private var currentPlayingSongIndex = 0
 
@@ -103,11 +101,20 @@ internal class MusicService: Service() {
         mediaPlayer.reset()
         mediaPlayer.setDataSource(song.filePath)
         mediaPlayer.prepare()
+        mediaPlayer.start()
+
+        startUpdatingPosition()
+
+        _playingState.value = PlayingState(
+            currentSong = song,
+            isPlaying = true,
+            currentPosition = 0,
+            totalDuration = mediaPlayer.duration
+        )
     }
 
     fun playNextSong() {
         val nextSong = getNextSong()
-        Log.d("##Arthur", "MusicService playNextSong: nextSong : ${nextSong}")
         if (nextSong == null) {
             stop()
             return
@@ -119,7 +126,7 @@ internal class MusicService: Service() {
     private fun getNextSong(): Song? {
         val repeatMode = _playerState.value.repeatMode
         if (repeatMode == RepeatMode.ONE) {
-            return _playerState.value.currentSong
+            return _playingState.value.currentSong
         }
 
         val shuffleMode = _playerState.value.shuffleMode
@@ -127,7 +134,6 @@ internal class MusicService: Service() {
             return playList.random()
         }
 
-        Log.d("##Arthur", "MusicService getNextSong: playList : ${playList}")
         currentPlayingSongIndex += 1
         if (currentPlayingSongIndex >= playList.size) {
             if (repeatMode == RepeatMode.ALL) {
@@ -160,6 +166,7 @@ internal class MusicService: Service() {
 
     fun stop() {
         mediaPlayer.stop()
+        stopUpdatingPosition()
         // service 종료?
     }
 
@@ -169,6 +176,7 @@ internal class MusicService: Service() {
 
     fun resume() {
         mediaPlayer.start()
+        startUpdatingPosition()
     }
 
     fun pause() {
@@ -189,25 +197,17 @@ internal class MusicService: Service() {
         _playerState.value = newPlayerState
     }
 
-    fun getPlayerState(): Flow<PlayerState> {
-        return _playerState
-    }
-
-    fun getPlayingState(): Flow<PlayingState> {
-        return _playingState
-    }
-
     fun getPlayList(): List<Song> {
         return playList
     }
 
     private var updateJob: Job? = null
     private fun startUpdatingPosition() {
+        stopUpdatingPosition()
         updateJob = CoroutineScope(Dispatchers.IO).launch {
             while (mediaPlayer.isPlaying) {
-                _playingState.value = PlayingState(
-                    currentPosition = mediaPlayer.currentPosition,
-                    totalDuration = mediaPlayer.duration
+                _playingState.value = _playingState.value.copy(
+                    currentPosition = mediaPlayer.currentPosition
                 )
                 delay(1000) // 1초 간격으로 업데이트
             }

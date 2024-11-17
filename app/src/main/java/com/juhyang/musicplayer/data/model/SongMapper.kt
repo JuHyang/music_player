@@ -8,6 +8,7 @@ class SongMapper {
         return Song(
             mp3Data.title,
             mp3Data.filePath,
+            mp3Data.albumCoverUri,
             mp3Data.artistName,
             mp3Data.duration
         )

@@ -46,7 +46,6 @@ public class PermissionChecker private constructor() {
     }
 
     private fun startSettingsForwardPermissionActivity(context: Context, manifestPermission: String): Flow<PermissionResult> {
-        Log.d("##Arthur", "PermissionChecker startSettingsForwardPermissionActivity: manifestPErmission : ${manifestPermission}")
         return startSettingsForwardActivity(context, manifestPermission)
     }
 
@@ -87,7 +86,6 @@ public class PermissionChecker private constructor() {
     }
 
     private fun startSettingsForwardActivity(context: Context, manifestPermission: String): Flow<PermissionResult> {
-        Log.d("##Arthur", "PermissionChecker startSettingsForwardActivity: manifestPermission : ${manifestPermission}")
         val activityIntent = PermissionForwardSettingsActivity.getIntent(context, manifestPermission)
 
         context.startActivity(activityIntent)

@@ -10,11 +10,10 @@ import android.os.IBinder
 import com.juhyang.musicplayer.internal.MusicService
 import com.juhyang.musicplayer.internal.model.PlayerState
 import com.juhyang.musicplayer.internal.model.PlayingState
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.StateFlow
 
 
-public interface MusicPlayer {
+interface MusicPlayer {
     companion object {
         val instance: MusicPlayer by lazy { MusicPlayerImpl.instance }
     }
@@ -28,8 +27,8 @@ public interface MusicPlayer {
     fun pause()
     fun stop()
     fun changeRepeatMode()
-    fun getCurrentPlayingState(): Flow<PlayingState>
-    fun getPlayerState(): Flow<PlayerState>
+    fun getPlayingState(): StateFlow<PlayingState>
+    fun getPlayerState(): StateFlow<PlayerState>
     fun changeShuffleMode()
     fun skipToNext()
     fun skipToPrevious()
@@ -43,19 +42,19 @@ internal class MusicPlayerImpl private constructor() : MusicPlayer {
         val instance by lazy { MusicPlayerImpl() }
     }
 
-    private var musicPlayer: MusicService? = null
+    private var musicService: MusicService? = null
     private val serviceConnection = object: ServiceConnection {
         override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
-            musicPlayer = (service as MusicService.MusicServiceBinder).getService()
+            musicService = (service as MusicService.MusicServiceBinder).getService()
         }
 
         override fun onServiceDisconnected(name: ComponentName?) {
-            musicPlayer = null
+            musicService = null
         }
     }
 
     override fun onResume(activity: Activity) {
-        if (musicPlayer == null) {
+        if (musicService == null) {
             val musicServiceIntent = Intent(activity, MusicService::class.java)
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                 activity.startForegroundService(musicServiceIntent)
@@ -69,71 +68,69 @@ internal class MusicPlayerImpl private constructor() : MusicPlayer {
     }
 
     override fun onPause(activity: Activity) {
-        val musicPlayer = musicPlayer ?: return
+        val musicPlayer = musicService ?: return
 
         if (!musicPlayer.isPlaying()) {
             musicPlayer.stopSelf()
         }
 
         activity.unbindService(serviceConnection)
-        this.musicPlayer = null
+        this.musicService = null
     }
 
     override fun play(songs: List<Song>) {
-        musicPlayer?.play(songs)
+        musicService?.play(songs)
     }
 
     override fun play(index: Int) {
-        musicPlayer?.play(index)
+        musicService?.play(index)
     }
 
     override fun resume() {
-        musicPlayer?.resume()
+        musicService?.resume()
     }
 
     override fun pause() {
-        musicPlayer?.pause()
+        musicService?.pause()
     }
 
     override fun stop() {
-        musicPlayer?.stop()
+        musicService?.stop()
     }
 
     override fun changeRepeatMode() {
-        musicPlayer?.changeRepeatMode()
+        musicService?.changeRepeatMode()
     }
 
     override fun changeShuffleMode() {
-        musicPlayer?.changeShuffleMode()
+        musicService?.changeShuffleMode()
     }
 
-    override fun getCurrentPlayingState(): Flow<PlayingState> {
-        val musicPlayer = musicPlayer ?: return flowOf(PlayingState())
-        return musicPlayer.getPlayingState()
+    override fun getPlayingState(): StateFlow<PlayingState> {
+        return MusicService.playingState
     }
 
-    override fun getPlayerState():Flow<PlayerState> {
-        val musicPlayer = musicPlayer ?: return flowOf(PlayerState())
-        return musicPlayer.getPlayerState()
+    override fun getPlayerState():StateFlow<PlayerState> {
+        return MusicService.playerState
     }
 
     override fun skipToNext() {
-        musicPlayer?.playNextSong()
+        musicService?.playNextSong()
     }
 
     override fun skipToPrevious() {
-        musicPlayer?.playPreviousSong()
+        musicService?.playPreviousSong()
     }
 
     override fun seekTo(position: Int) {
-        musicPlayer?.seekTo(position)
+        musicService?.seekTo(position)
     }
 
     override fun isPlaying(): Boolean {
-        return musicPlayer?.isPlaying() ?: false
+        return musicService?.isPlaying() ?: false
     }
 
     override fun getPlaylist(): List<Song> {
-        return musicPlayer?.getPlayList() ?: emptyList()
+        return musicService?.getPlayList() ?: emptyList()
     }
 }
