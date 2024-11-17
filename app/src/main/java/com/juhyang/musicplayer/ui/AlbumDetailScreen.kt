@@ -3,6 +3,7 @@ package com.juhyang.musicplayer.ui
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.Text
@@ -82,7 +83,7 @@ private fun SongItem(song: Song, index: Int, onSongClick: (Int) -> Unit) {
         )
         Text(
             text = song.title,
-            modifier = Modifier.padding(8.dp)
+            modifier = Modifier.padding(8.dp).fillMaxWidth()
         )
     }
 }
