@@ -15,7 +15,6 @@ import android.os.IBinder
 import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
-import android.util.Log
 import android.view.KeyEvent
 import androidx.core.app.NotificationCompat
 import com.juhyang.musicplayer.R
@@ -59,13 +58,12 @@ internal class MusicService : Service() {
         return mBinder
     }
 
-
     override fun onCreate() {
         super.onCreate()
         startForegroundService()
 
         mediaPlayer.setOnCompletionListener {
-            playNextSong()
+            playEnded()
         }
 
         mediaSession.setCallback(object : MediaSessionCompat.Callback() {
@@ -74,7 +72,6 @@ internal class MusicService : Service() {
                 val keyEvent = buttonEvent.getParcelableExtra<KeyEvent>(Intent.EXTRA_KEY_EVENT)
                 if (keyEvent != null) {
                     if (keyEvent.action == KeyEvent.ACTION_DOWN) {
-                        Log.d("##Arthur", "MusicService onMediaButtonEvent: keyCode : ${keyEvent.keyCode}")
                         when (keyEvent.keyCode) {
                             KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE -> {
                                 if (isPlaying()) pause() else resume()
@@ -141,6 +138,7 @@ internal class MusicService : Service() {
                 updatePlaybackState(PlaybackState.STATE_STOPPED)
             }
         })
+
         mediaSession.isActive = true
     }
 
@@ -237,6 +235,7 @@ internal class MusicService : Service() {
                 // 음악 재생 처리
                 resume()
             }
+
             ACTION_PAUSE -> {
                 // 음악 일시정지 처리
                 pause()
@@ -246,8 +245,14 @@ internal class MusicService : Service() {
         return START_STICKY
     }
 
-    private var playList: MutableList<Song> = mutableListOf()
-    private var currentPlayingSongIndex = 0
+    private val playList: List<Song>
+        get() {
+            return _playerState.value.playList
+        }
+    private val currentPlayingSongIndex: Int
+        get() {
+            return _playerState.value.currentPlayingSongIndex
+        }
 
     override fun onDestroy() {
         mediaPlayer.stop()
@@ -257,14 +262,12 @@ internal class MusicService : Service() {
     }
 
     fun play(songs: List<Song>) {
-        playList.clear()
-        playList.addAll(songs)
-        currentPlayingSongIndex = 0
+        _playerState.value = _playerState.value.copy(playList = songs, currentPlayingSongIndex = 0)
         play(playList[currentPlayingSongIndex])
     }
 
     fun play(index: Int) {
-        currentPlayingSongIndex = index
+        _playerState.value = _playerState.value.copy(currentPlayingSongIndex = index)
         play(playList[currentPlayingSongIndex])
     }
 
@@ -274,7 +277,6 @@ internal class MusicService : Service() {
         mediaPlayer.prepare()
         mediaPlayer.start()
 
-        startUpdatingPosition()
 
         _playingState.value = PlayingState(
             currentSong = song,
@@ -282,18 +284,28 @@ internal class MusicService : Service() {
             currentPosition = 0,
             totalDuration = mediaPlayer.duration
         )
+        startUpdatingPosition()
 
         updateNotification(song.title, song.artistName, song.albumCoverUri.toString())
     }
 
     fun playNextSong() {
+        val nextSong = getNextSong() ?: return
+
+        play(nextSong)
+    }
+
+    private fun playEnded() {
         val nextSong = getNextSong()
-        if (nextSong == null) {
-            stop()
+
+        if (nextSong != null) {
+            play(nextSong)
             return
         }
 
-        play(nextSong)
+        _playerState.value = _playerState.value.copy(currentPlayingSongIndex = 0)
+        play(playList[currentPlayingSongIndex])
+        pause()
     }
 
     private fun getNextSong(): Song? {
@@ -307,20 +319,21 @@ internal class MusicService : Service() {
             return playList.random()
         }
 
-        currentPlayingSongIndex += 1
-        if (currentPlayingSongIndex >= playList.size) {
+        var newIndex = currentPlayingSongIndex + 1
+        if (newIndex >= playList.size) {
             if (repeatMode == RepeatMode.ALL) {
-                currentPlayingSongIndex = 0
+                newIndex = 0
             } else {
                 return null
             }
         }
 
+        _playerState.value = _playerState.value.copy(currentPlayingSongIndex = newIndex)
         return playList[currentPlayingSongIndex]
     }
 
     fun playPreviousSong() {
-        if (_playingState.value.currentPosition > 2000) {
+        if (mediaPlayer.currentPosition > 3000) {
             seekTo(0)
             return
         }
@@ -331,7 +344,7 @@ internal class MusicService : Service() {
     private fun getPreviousSong(): Song {
         val previousIndex = currentPlayingSongIndex - 1
         if (previousIndex < 0) {
-            currentPlayingSongIndex = 0
+            _playerState.value = _playerState.value.copy(currentPlayingSongIndex =  playList.size - 1)
         }
 
         return playList[currentPlayingSongIndex]
@@ -356,7 +369,6 @@ internal class MusicService : Service() {
 
     fun pause() {
         mediaPlayer.pause()
-
         _playingState.value = _playingState.value.copy(isPlaying = false)
     }
 
