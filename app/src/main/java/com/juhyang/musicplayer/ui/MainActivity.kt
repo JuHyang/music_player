@@ -6,11 +6,15 @@ import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Scaffold
+import androidx.compose.material.BottomSheetScaffold
+import androidx.compose.material.BottomSheetValue
+import androidx.compose.material.rememberBottomSheetScaffoldState
+import androidx.compose.material.rememberBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -19,6 +23,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.juhyang.musicplayer.MusicPlayer
+import com.juhyang.musicplayer.MusicPlayerView
 import com.juhyang.musicplayer.data.repository.PermissionRepositoryImpl
 import com.juhyang.musicplayer.di.AlbumDIContainer
 import com.juhyang.musicplayer.di.SongListDiContainer
@@ -32,7 +37,7 @@ import kotlinx.coroutines.launch
 class MainActivity : ComponentActivity() {
     private lateinit var albumListViewModel: AlbumListViewModel
     private lateinit var songListViewModel: SongListViewModel
-    private val musicPlayer by lazy { MusicPlayer() }
+    private val musicPlayer by lazy { MusicPlayer.instance }
     private var navController: NavHostController? = null
     private val permissionChecker by lazy { PermissionChecker.instance }
 
@@ -139,13 +144,24 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MyApp(navController: NavHostController, albumListViewModel: AlbumListViewModel, songListViewModel: SongListViewModel) {
-    Scaffold(
-        bottomBar = { MusicPlayerView() }
-    ) {paddingValues ->
+    val bottomSheetState = rememberBottomSheetState(BottomSheetValue.Collapsed)
+    val scaffoldState = rememberBottomSheetScaffoldState(bottomSheetState)
+    val coroutineScope = rememberCoroutineScope()
 
+    BottomSheetScaffold(
+        scaffoldState = scaffoldState,
+        sheetContent = {
+            MusicPlayerView(
+                bottomSheetState = bottomSheetState,
+                onCollapse = {
+                    coroutineScope.launch { bottomSheetState.collapse() }
+                }
+            )
+        },
+        sheetPeekHeight = 60.dp
+    ) {paddingValues ->
         NavHost(
             navController = navController,
             startDestination = "albumList",
