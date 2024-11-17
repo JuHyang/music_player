@@ -15,6 +15,8 @@ import android.os.IBinder
 import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
+import android.util.Log
+import android.view.KeyEvent
 import androidx.core.app.NotificationCompat
 import com.juhyang.musicplayer.R
 import com.juhyang.musicplayer.Song
@@ -67,6 +69,50 @@ internal class MusicService : Service() {
         }
 
         mediaSession.setCallback(object : MediaSessionCompat.Callback() {
+            override fun onMediaButtonEvent(mediaButtonEvent: Intent?): Boolean {
+                val buttonEvent = mediaButtonEvent ?: return true
+                val keyEvent = buttonEvent.getParcelableExtra<KeyEvent>(Intent.EXTRA_KEY_EVENT)
+                if (keyEvent != null) {
+                    if (keyEvent.action == KeyEvent.ACTION_DOWN) {
+                        Log.d("##Arthur", "MusicService onMediaButtonEvent: keyCode : ${keyEvent.keyCode}")
+                        when (keyEvent.keyCode) {
+                            KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE -> {
+                                if (isPlaying()) pause() else resume()
+                            }
+
+                            KeyEvent.KEYCODE_MEDIA_NEXT -> {
+                                playNextSong()
+                                return false
+                            }
+
+                            KeyEvent.KEYCODE_MEDIA_PREVIOUS -> {
+                                playPreviousSong()
+                                return false
+                            }
+
+                            KeyEvent.KEYCODE_MEDIA_STOP -> {
+                                stop()
+                                return false
+                            }
+
+                            KeyEvent.KEYCODE_MEDIA_PLAY -> {
+                                resume()
+                                return false
+                            }
+
+                            KeyEvent.KEYCODE_MEDIA_PAUSE -> {
+                                pause()
+                                return false
+                            }
+
+                            else -> return super.onMediaButtonEvent(mediaButtonEvent)
+                        }
+                    }
+                }
+
+                return super.onMediaButtonEvent(mediaButtonEvent)
+            }
+
             override fun onPlay() {
                 super.onPlay()
                 resume()
