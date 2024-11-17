@@ -3,13 +3,20 @@ package com.juhyang.musicplayer.internal.presentation
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
+import android.app.PendingIntent
 import android.app.Service
+import android.content.Context
 import android.content.Intent
 import android.media.MediaPlayer
+import android.media.session.PlaybackState
 import android.os.Binder
 import android.os.Build
 import android.os.IBinder
+import android.support.v4.media.MediaMetadataCompat
+import android.support.v4.media.session.MediaSessionCompat
+import android.support.v4.media.session.PlaybackStateCompat
 import androidx.core.app.NotificationCompat
+import com.juhyang.musicplayer.R
 import com.juhyang.musicplayer.Song
 import com.juhyang.musicplayer.internal.model.PlayerState
 import com.juhyang.musicplayer.internal.model.PlayingState
@@ -24,25 +31,32 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
 
-internal class MusicService: Service() {
+internal class MusicService : Service() {
     companion object {
         private var _playerState: MutableStateFlow<PlayerState> = MutableStateFlow(PlayerState())
         var playerState: StateFlow<PlayerState> = _playerState
         private var _playingState: MutableStateFlow<PlayingState> = MutableStateFlow(PlayingState())
         var playingState: StateFlow<PlayingState> = _playingState
+
+        private const val NOTIFICATION_ID = 100
+
+        private const val ACTION_PLAY = "ACTION_PLAY"
+        private const val ACTION_PAUSE = "ACTION_PAUSE"
     }
 
-    inner class MusicServiceBinder: Binder() {
+    inner class MusicServiceBinder : Binder() {
         fun getService(): MusicService {
             return this@MusicService
         }
     }
 
     private val mediaPlayer: MediaPlayer = MediaPlayer()
+    private val mediaSession: MediaSessionCompat by lazy { MediaSessionCompat(this, "MusicService") }
     private val mBinder: MusicServiceBinder = MusicServiceBinder()
     override fun onBind(intent: Intent?): IBinder {
         return mBinder
     }
+
 
     override fun onCreate() {
         super.onCreate()
@@ -51,6 +65,52 @@ internal class MusicService: Service() {
         mediaPlayer.setOnCompletionListener {
             playNextSong()
         }
+
+        mediaSession.setCallback(object : MediaSessionCompat.Callback() {
+            override fun onPlay() {
+                super.onPlay()
+                resume()
+                updatePlaybackState(PlaybackState.STATE_PLAYING)
+            }
+
+            override fun onPause() {
+                super.onPause()
+                pause()
+                updatePlaybackState(PlaybackState.STATE_PAUSED)
+            }
+
+            override fun onSkipToNext() {
+                super.onSkipToNext()
+                playNextSong()
+            }
+
+            override fun onSkipToPrevious() {
+                super.onSkipToPrevious()
+                playPreviousSong()
+            }
+
+            override fun onStop() {
+                super.onStop()
+                stop()
+                updatePlaybackState(PlaybackState.STATE_STOPPED)
+            }
+        })
+        mediaSession.isActive = true
+    }
+
+    private fun updatePlaybackState(state: Int) {
+        mediaSession.setPlaybackState(
+            PlaybackStateCompat.Builder()
+                .setActions(
+                    PlaybackStateCompat.ACTION_PLAY or
+                            PlaybackStateCompat.ACTION_PAUSE or
+                            PlaybackStateCompat.ACTION_SKIP_TO_NEXT or
+                            PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS or
+                            PlaybackStateCompat.ACTION_STOP
+                )
+                .setState(state, mediaPlayer.currentPosition.toLong(), 1f)
+                .build()
+        )
     }
 
     private fun startForegroundService() {
@@ -64,16 +124,79 @@ internal class MusicService: Service() {
             notificationManager.createNotificationChannel(mChannel)
         }
 
-        val notification: Notification = NotificationCompat.Builder(this, "CHANNEL_ID")
-//            .setSmallIcon(R.drawable.ic_play) // 알림 아이콘
-            .setContentTitle("뮤직 플레이어 앱") // 알림 제목 설정
-            .setContentText("앱이 실행중입니다.") // 알림 내용 설정
+        startForeground(NOTIFICATION_ID, getNotification())
+    }
+
+    private fun getNotification(): Notification {
+        val playIntent = Intent(this, MusicService::class.java).apply {
+            action = MusicService.ACTION_PLAY  // 정의된 액션
+        }
+
+        val playPendingIntent: PendingIntent = PendingIntent.getService(
+            this,
+            0,
+            playIntent,
+            PendingIntent.FLAG_MUTABLE
+        )
+
+        val pauseIntent = Intent(this, MusicService::class.java).apply {
+            action = MusicService.ACTION_PAUSE  // 정의된 액션
+        }
+
+        val pausePendingIntent: PendingIntent = PendingIntent.getService(
+            this,
+            0,
+            pauseIntent,
+            PendingIntent.FLAG_MUTABLE
+        )
+
+        return NotificationCompat.Builder(this, "CHANNEL_ID")
+            .setContentTitle("Music Player")
+            .setContentText("Now Playing")
+            .setSmallIcon(R.drawable.play_arrow)
+            .setStyle(
+                androidx.media.app.NotificationCompat.MediaStyle().setMediaSession(mediaSession.sessionToken)
+            )
+            .addAction(R.drawable.play_arrow, "Play", playPendingIntent)  // 재생 버튼
+            .addAction(R.drawable.pause, "Pause", pausePendingIntent)  // 일시정지 버튼
+            .setVisibility(NotificationCompat.VISIBILITY_PUBLIC) // 잠금 화면에 표시
             .build()
-        startForeground(222, notification) // 인수로 알림 ID 식별자와 알림 지정, 그런데 이 부분에서 오류나서 꺼짐, 주석 처리 할 것
+    }
+
+    private fun updateNotification(songTitle: String, artist: String, albumArt: String) {
+        // 메타데이터 설정
+        val mediaMetadata = MediaMetadataCompat.Builder()
+            .putString(MediaMetadataCompat.METADATA_KEY_TITLE, songTitle)
+            .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, artist)
+            .putString(MediaMetadataCompat.METADATA_KEY_ALBUM_ART_URI, albumArt)
+            .putLong(MediaMetadataCompat.METADATA_KEY_DURATION, mediaPlayer.duration.toLong())
+            .build()
+
+        mediaSession.setMetadata(mediaMetadata)
+
+        // 알림 생성
+        val notification = getNotification()
+
+        // 기존 알림을 갱신
+        val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        notificationManager.notify(NOTIFICATION_ID, notification)
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         startForegroundService()
+
+        val action = intent?.action
+        when (action) {
+            ACTION_PLAY -> {
+                // 음악 재생 처리
+                resume()
+            }
+            ACTION_PAUSE -> {
+                // 음악 일시정지 처리
+                pause()
+            }
+        }
+
         return START_STICKY
     }
 
@@ -82,6 +205,8 @@ internal class MusicService: Service() {
 
     override fun onDestroy() {
         mediaPlayer.stop()
+        mediaPlayer.release()
+        mediaSession.release()
         super.onDestroy()
     }
 
@@ -111,6 +236,8 @@ internal class MusicService: Service() {
             currentPosition = 0,
             totalDuration = mediaPlayer.duration
         )
+
+        updateNotification(song.title, song.artistName, song.albumCoverUri.toString())
     }
 
     fun playNextSong() {
