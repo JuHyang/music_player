@@ -36,7 +36,7 @@ class AlbumListViewModel(
 
     sealed class ViewAction {
         object Idle: ViewAction()
-        class MoveMusicList(val album: Album): ViewAction()
+        class MoveAlbumDetailScreen(val album: Album): ViewAction()
         object RequestStoragePermission: ViewAction()
     }
 
@@ -119,6 +119,6 @@ class AlbumListViewModel(
     }
 
     private fun handleClickAlbum(album: Album) {
-        setViewAction(ViewAction.MoveMusicList(album))
+        setViewAction(ViewAction.MoveAlbumDetailScreen(album))
     }
 }

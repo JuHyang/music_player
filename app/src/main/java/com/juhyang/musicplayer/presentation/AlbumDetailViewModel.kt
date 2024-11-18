@@ -2,8 +2,9 @@ package com.juhyang.musicplayer.presentation
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.juhyang.musicplayer.domain.model.Album
+import com.juhyang.musicplayer.MusicPlayer
 import com.juhyang.musicplayer.Song
+import com.juhyang.musicplayer.domain.model.Album
 import com.juhyang.musicplayer.domain.usecase.LoadAlbumUseCase
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
@@ -12,11 +13,11 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
 
-class SongListViewModel(
+class AlbumDetailViewModel(
+    private val musicPlayer: MusicPlayer,
     private val loadAlbumUseCase: LoadAlbumUseCase,
     private val mainDispatcher: CoroutineDispatcher = Dispatchers.Main,
     private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
-    private val defaultDispatcher: CoroutineDispatcher = Dispatchers.Default
 ) : ViewModel() {
     sealed class Intent {
         object Idle: Intent()
@@ -30,17 +31,11 @@ class SongListViewModel(
         class Loaded(val album: Album): ViewState()
         object Error: ViewState()
     }
-    sealed class ViewAction {
-        object Idle: ViewAction()
-        class PlaySongs(val songs: List<Song>): ViewAction()
-    }
 
     private val _intent: MutableStateFlow<Intent> = MutableStateFlow(Intent.Idle)
     private val _viewState: MutableStateFlow<ViewState> = MutableStateFlow(ViewState.Idle)
     val viewState: StateFlow<ViewState> = _viewState
 
-    private val _viewAction: MutableStateFlow<ViewAction> = MutableStateFlow(ViewAction.Idle)
-    val viewAction: StateFlow<ViewAction> = _viewAction
     private var album: Album? = null
 
     init {
@@ -60,12 +55,6 @@ class SongListViewModel(
     private fun setViewState(viewState: ViewState) {
         viewModelScope.launch(mainDispatcher) {
             _viewState.emit(viewState)
-        }
-    }
-
-    private fun setViewAction(viewAction: ViewAction) {
-        viewModelScope.launch(mainDispatcher) {
-            _viewAction.emit(viewAction)
         }
     }
 
@@ -98,20 +87,20 @@ class SongListViewModel(
 
     private fun handlePlayAll() {
         album?.let {
-            setViewAction(ViewAction.PlaySongs(it.songs))
+            musicPlayer.play(it.songs)
         }
     }
 
     private fun handlePlayRandom() {
         album?.let {
             val mutableSongs: MutableList<Song> = it.songs.toMutableList()
-            setViewAction(ViewAction.PlaySongs(mutableSongs.shuffled()))
+            musicPlayer.play(mutableSongs.shuffled())
         }
     }
 
     private fun handlePlaySong(index: Int) {
         album?.let {
-            setViewAction(ViewAction.PlaySongs(it.songs.slice(index until it.songs.size)))
+            musicPlayer.play(it.songs.slice(index until it.songs.size))
         }
     }
 }

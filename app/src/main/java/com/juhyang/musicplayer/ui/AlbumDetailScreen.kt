@@ -16,24 +16,24 @@ import androidx.compose.ui.unit.dp
 import com.juhyang.musicplayer.AlbumThumbnail
 import com.juhyang.musicplayer.Song
 import com.juhyang.musicplayer.domain.model.Album
-import com.juhyang.musicplayer.presentation.SongListViewModel
+import com.juhyang.musicplayer.presentation.AlbumDetailViewModel
 
 
 @Composable
-fun AlbumDetailScreen(viewModel: SongListViewModel, albumTitle: String, artist: String) {
-    viewModel.setIntent(SongListViewModel.Intent.LoadAlbum(albumTitle, artist))
+fun AlbumDetailScreen(viewModel: AlbumDetailViewModel, albumTitle: String, artist: String) {
+    viewModel.setIntent(AlbumDetailViewModel.Intent.LoadAlbum(albumTitle, artist))
     handleSongListViewState(viewModel = viewModel)
 }
 
 @Composable
-private fun handleSongListViewState(viewModel: SongListViewModel) {
+private fun handleSongListViewState(viewModel: AlbumDetailViewModel) {
     val viewState by viewModel.viewState.collectAsState()
     when (viewState) {
-        is SongListViewModel.ViewState.Error -> {}
-        is SongListViewModel.ViewState.Idle -> {}
-        is SongListViewModel.ViewState.Loaded -> {
-            SongListView((viewState as SongListViewModel.ViewState.Loaded).album) {
-                viewModel.setIntent(SongListViewModel.Intent.PlaySong(it))
+        is AlbumDetailViewModel.ViewState.Error -> {}
+        is AlbumDetailViewModel.ViewState.Idle -> {}
+        is AlbumDetailViewModel.ViewState.Loaded -> {
+            SongListView((viewState as AlbumDetailViewModel.ViewState.Loaded).album) {
+                viewModel.setIntent(AlbumDetailViewModel.Intent.PlaySong(it))
             }
         }
     }

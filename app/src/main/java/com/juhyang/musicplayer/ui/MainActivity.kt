@@ -26,8 +26,8 @@ import com.juhyang.musicplayer.MusicPlayerView
 import com.juhyang.musicplayer.data.repository.PermissionRepositoryImpl
 import com.juhyang.musicplayer.di.AlbumDIContainer
 import com.juhyang.musicplayer.di.SongListDiContainer
+import com.juhyang.musicplayer.presentation.AlbumDetailViewModel
 import com.juhyang.musicplayer.presentation.AlbumListViewModel
-import com.juhyang.musicplayer.presentation.SongListViewModel
 import com.juhyang.musicplayer.ui.theme.MusicPlayerTheme
 import com.juhyang.permission.GrantStatus
 import com.juhyang.permission.PermissionChecker
@@ -35,7 +35,7 @@ import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
     private lateinit var albumListViewModel: AlbumListViewModel
-    private lateinit var songListViewModel: SongListViewModel
+    private lateinit var albumDetailViewModel: AlbumDetailViewModel
     private val musicPlayer by lazy { MusicPlayer.instance }
     private var navController: NavHostController? = null
     private val permissionChecker by lazy { PermissionChecker.instance }
@@ -46,14 +46,14 @@ class MainActivity : ComponentActivity() {
         albumListViewModel = albumDiContainer.createViewModel(this)
 
         val songListDIContainer = SongListDiContainer()
-        songListViewModel = songListDIContainer.createViewModel(this)
+        albumDetailViewModel = songListDIContainer.createViewModel(this)
 
         bindViewModel()
 
         setContent {
             MusicPlayerTheme {
                 navController = rememberNavController()
-                MyApp(navController = navController!!, albumListViewModel = albumListViewModel, songListViewModel = songListViewModel)
+                MyApp(navController = navController!!, albumListViewModel = albumListViewModel, albumDetailViewModel = albumDetailViewModel)
             }
         }
     }
@@ -74,19 +74,13 @@ class MainActivity : ComponentActivity() {
             albumListViewModel.viewAction.collect {
                 handleAlbumViewAction(it)
             }
-
-        }
-        lifecycleScope.launch {
-            songListViewModel.viewAction.collect {
-                handleSongListViewAction(it)
-            }
         }
     }
 
     private fun handleAlbumViewAction(viewAction: AlbumListViewModel.ViewAction) {
         when (viewAction) {
             is AlbumListViewModel.ViewAction.Idle -> { }
-            is AlbumListViewModel.ViewAction.MoveMusicList -> {
+            is AlbumListViewModel.ViewAction.MoveAlbumDetailScreen -> {
                 navController?.navigate("albumDetail/${viewAction.album.title}/${viewAction.album.artist}")
             }
             is AlbumListViewModel.ViewAction.RequestStoragePermission -> {
@@ -94,16 +88,6 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
-
-    private fun handleSongListViewAction(viewAction: SongListViewModel.ViewAction) {
-        when (viewAction) {
-            is SongListViewModel.ViewAction.Idle -> {}
-            is SongListViewModel.ViewAction.PlaySongs -> {
-                musicPlayer.play(viewAction.songs)
-            }
-        }
-    }
-
 
     private fun requestStoragePermission() {
         val manifestPermission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -138,7 +122,7 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun MyApp(navController: NavHostController, albumListViewModel: AlbumListViewModel, songListViewModel: SongListViewModel) {
+fun MyApp(navController: NavHostController, albumListViewModel: AlbumListViewModel, albumDetailViewModel: AlbumDetailViewModel) {
     val bottomSheetState = rememberBottomSheetState(BottomSheetValue.Collapsed)
     val scaffoldState = rememberBottomSheetScaffoldState(bottomSheetState)
     val coroutineScope = rememberCoroutineScope()
@@ -172,7 +156,7 @@ fun MyApp(navController: NavHostController, albumListViewModel: AlbumListViewMod
             ) { backStackEntry ->
                 val albumTitle = backStackEntry.arguments?.getString("albumTitle") ?: ""
                 val artist = backStackEntry.arguments?.getString("artistName") ?: ""
-                AlbumDetailScreen(viewModel = songListViewModel, albumTitle = albumTitle, artist = artist)
+                AlbumDetailScreen(viewModel = albumDetailViewModel, albumTitle = albumTitle, artist = artist)
             }
         }
     }

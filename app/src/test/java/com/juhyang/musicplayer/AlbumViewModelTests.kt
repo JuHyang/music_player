@@ -33,7 +33,6 @@ class AlbumViewModelTests : CoroutineTest() {
             checkStoragePermissionUseCase,
             mainDispatcher = testDispatcher,
             ioDispatcher = testDispatcher,
-            defaultDispatcher = defaultTestDispatcher
         )
     }
 
@@ -109,7 +108,7 @@ class AlbumViewModelTests : CoroutineTest() {
         viewModel.setIntent(AlbumListViewModel.Intent.ClickAlbum(albumB))
 
         val viewActionValue = viewModel.viewAction.value
-        assert(viewActionValue is AlbumListViewModel.ViewAction.MoveMusicList)
-        assert((viewActionValue as AlbumListViewModel.ViewAction.MoveMusicList).album == albumB)
+        assert(viewActionValue is AlbumListViewModel.ViewAction.MoveAlbumDetailScreen)
+        assert((viewActionValue as AlbumListViewModel.ViewAction.MoveAlbumDetailScreen).album == albumB)
     }
 }

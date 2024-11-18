@@ -1,18 +1,19 @@
 package com.juhyang.musicplayer.di
 
 import android.content.Context
+import com.juhyang.musicplayer.MusicPlayer
 import com.juhyang.musicplayer.data.datasource.AlbumDataSource
 import com.juhyang.musicplayer.data.datasource.AlbumLocalDataSource
 import com.juhyang.musicplayer.data.repository.AlbumRepositoryImpl
 import com.juhyang.musicplayer.domain.repository.AlbumRepository
 import com.juhyang.musicplayer.domain.usecase.LoadAlbumUseCase
 import com.juhyang.musicplayer.domain.usecase.LoadAlbumUseCaseImpl
-import com.juhyang.musicplayer.presentation.SongListViewModel
+import com.juhyang.musicplayer.presentation.AlbumDetailViewModel
 
 
 class SongListDiContainer {
-    fun createViewModel(context: Context): SongListViewModel {
-        return SongListViewModel(createLoadAlbumUseCase(context))
+    fun createViewModel(context: Context): AlbumDetailViewModel {
+        return AlbumDetailViewModel(MusicPlayer.instance, createLoadAlbumUseCase(context))
     }
 
     private fun createLoadAlbumUseCase(context: Context): LoadAlbumUseCase {
