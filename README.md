@@ -89,6 +89,9 @@ data class Song(
     - 플로우에 따라 설정 화면으로 보낼 수 있는 기능을 제공합니다.
     - 현재 미리 선언되어있는 권한은 Permission / ReadAudio 권한입니다. 필요한 경우 Permission 을 상속받아 필요한 권한을 추가할 수 있습니다.
     - 필요한 함수를 호출하고, 권한에 대한 결과를 Flow 로 받을 수 있습니다.
+    - requestPermissionIfNeeded 함수 호출 시, 권한이 필요한 경우 권한 요청을 하고, 필요하지 않은 경우 바로 결과를 반환합니다.
+      - 최초 요청시에는 앱내에서 다이얼로그가 노출됩니다. 
+      - isRequired 가 true 인 경우, 두번째 이상의 요청의 경우 설정화면으로 이동합니다.
 
 ```kotlin
 // interface
