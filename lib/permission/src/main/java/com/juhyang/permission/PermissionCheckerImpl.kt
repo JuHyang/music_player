@@ -1,11 +1,10 @@
 package com.juhyang.permission
 
 import android.content.Context
+import android.content.SharedPreferences
 import com.juhyang.permission.internal.activity.PermissionActivity
 import com.juhyang.permission.internal.activity.PermissionForwardSettingsActivity
-import com.juhyang.permission.internal.model.NotificationPermission
-import com.juhyang.permission.internal.model.Permission
-import com.juhyang.permission.internal.model.ReadAudioPermission
+import com.juhyang.permission.model.Permission
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.filter
@@ -20,36 +19,26 @@ internal class PermissionCheckerImpl private constructor(): PermissionChecker {
 
     val permissionResultFlow: MutableSharedFlow<List<PermissionResult>> = MutableSharedFlow()
 
-    override fun requestNotificationPermissionIfNeeded(context: Context): Flow<PermissionResult> {
-        return requestPermission(context, NotificationPermission())
+    override fun requestPermissionIfNeeded(context: Context, permission: Permission, isRequired: Boolean): Flow<PermissionResult> {
+        if (isFirstPermissionRequest(context, permission.manifestPermission)) {
+            setPermissionRequested(context, permission.manifestPermission)
+
+            return requestPermission(context, permission)
+        } else {
+            if (isRequired) {
+                return startSettingsForwardPermissionActivity(context, permission.manifestPermission)
+            } else {
+                return flowOf(PermissionResult(permission.manifestPermission, GrantStatus.REVOKED))
+            }
+        }
     }
 
-    override fun isNotificationPermissionGranted(context: Context): Boolean {
-        return isGrantedPermission(context, NotificationPermission())
-    }
-
-    override fun requestReadAudioPermissionIfNeeded(context: Context): Flow<PermissionResult> {
-        return requestPermission(context, ReadAudioPermission())
-    }
-
-    override fun isReadAudioPermissionGranted(context: Context): Boolean {
-        return isGrantedPermission(context, ReadAudioPermission())
-    }
-
-    override fun startSettingsForwardNotificationPermissionActivity(context: Context): Flow<PermissionResult> {
-        return startSettingsForwardPermissionActivity(context, NotificationPermission().manifestPermission)
-    }
-
-    override fun startSettingsForwardReadAudioPermissionActivity(context: Context): Flow<PermissionResult> {
-        return startSettingsForwardPermissionActivity(context, ReadAudioPermission().manifestPermission)
+    override fun isGrantedPermission(context: Context, permission: Permission): Boolean {
+        return !permission.isNeedToRequestPermission(context)
     }
 
     private fun startSettingsForwardPermissionActivity(context: Context, manifestPermission: String): Flow<PermissionResult> {
         return startSettingsForwardActivity(context, manifestPermission)
-    }
-
-    private fun isGrantedPermission(context: Context, permission: Permission): Boolean {
-        return !permission.isNeedToRequestPermission(context)
     }
 
     private fun requestPermission(context: Context, permission: Permission): Flow<PermissionResult> {
@@ -94,5 +83,19 @@ internal class PermissionCheckerImpl private constructor(): PermissionChecker {
             .map {
                 it.first()
             }
+    }
+
+    private fun getSharedPreferences(context: Context): SharedPreferences {
+        return context.getSharedPreferences("PermissionPrefs", Context.MODE_PRIVATE)
+    }
+
+    private fun isFirstPermissionRequest(context: Context, permission: String): Boolean {
+        // 권한 요청 여부 확인
+        return getSharedPreferences(context).getBoolean(permission, true) // 기본값: 처음 요청
+    }
+
+    private fun setPermissionRequested(context: Context, permission: String) {
+        // 권한 요청 기록
+        getSharedPreferences(context).edit().putBoolean(permission, false).apply()
     }
 }

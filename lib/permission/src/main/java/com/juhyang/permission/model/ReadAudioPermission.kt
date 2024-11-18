@@ -1,4 +1,4 @@
-package com.juhyang.permission.internal.model
+package com.juhyang.permission.model
 
 import android.Manifest
 import android.content.Context
@@ -8,21 +8,12 @@ import androidx.core.content.ContextCompat
 import com.juhyang.permission.GrantStatus
 
 
-internal class ReadAudioPermission: Permission() {
-    companion object {
-        fun getManifestPermission(): String {
-            return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                Manifest.permission.READ_MEDIA_AUDIO
-            } else {
-                Manifest.permission.READ_EXTERNAL_STORAGE
-            }
-        }
-    }
+class ReadAudioPermission : Permission() {
 
-    override val manifestPermission = getManifestPermission()
+    override val manifestPermission by lazy { getReadAudioManifestPermission() }
 
     override fun isNeedToRequestPermission(context: Context): Boolean {
-        return checkPermission(context, getManifestPermission()) == GrantStatus.REVOKED
+        return checkPermission(context, manifestPermission) == GrantStatus.REVOKED
     }
 
     private fun checkPermission(context: Context, manifestPermission: String): GrantStatus {
@@ -30,6 +21,14 @@ internal class ReadAudioPermission: Permission() {
             GrantStatus.GRANTED
         } else {
             GrantStatus.REVOKED
+        }
+    }
+
+    private fun getReadAudioManifestPermission(): String {
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            Manifest.permission.READ_MEDIA_AUDIO
+        } else {
+            Manifest.permission.READ_EXTERNAL_STORAGE
         }
     }
 }

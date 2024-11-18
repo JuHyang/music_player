@@ -48,31 +48,32 @@ fun MusicPlayerView(bottomSheetState: BottomSheetState, onExpand: () -> Unit, on
 
 // Feature
 interface MusicPlayer {
-  companion object {
-    val instance: MusicPlayer by lazy { MusicPlayerImpl.instance }
-  }
+    companion object {
+        val instance: MusicPlayer by lazy { MusicPlayerImpl.instance }
+    }
 
-  fun onResume(activity: Activity)
-  fun onPause(activity: Activity)
+    fun onStart(activity: Activity)
+    fun onResume(activity: Activity)
+    fun onPause(activity: Activity)
 
-  fun play(songs: List<Song>)
-  fun play(index: Int)
-  fun resume()
-  fun pause()
-  fun stop()
-  fun changeRepeatMode()
-  fun getPlayingState(): StateFlow<PlayingState>
-  fun getPlayerState(): StateFlow<PlayerState>
-  fun changeShuffleMode()
-  fun skipToNext()
-  fun skipToPrevious()
-  fun seekTo(position: Int)
-  fun isPlaying(): Boolean
-  fun getPlaylist(): List<Song>
+    fun play(songs: List<Song>)
+    fun play(index: Int)
+    fun resume()
+    fun pause()
+    fun stop()
+    fun changeRepeatMode()
+    fun getPlayingState(): StateFlow<PlayingState>
+    fun getPlayerState(): StateFlow<PlayerState>
+    fun changeShuffleMode()
+    fun skipToNext()
+    fun skipToPrevious()
+    fun seekTo(position: Int)
+    fun isPlaying(): Boolean
+    fun getPlaylist(): List<Song>
+    fun addPlayList(song: Song)
 }
 
 // Model
-
 data class Song(
   val title: String,
   val filePath: String,
@@ -96,17 +97,25 @@ public interface PermissionChecker {
     val instance: PermissionChecker by lazy { PermissionCheckerImpl.instance }
   }
 
-  fun requestNotificationPermissionIfNeeded(context: Context): Flow<PermissionResult>
-  fun isNotificationPermissionGranted(context: Context): Boolean
-  fun requestReadAudioPermissionIfNeeded(context: Context): Flow<PermissionResult>
-  fun isReadAudioPermissionGranted(context: Context): Boolean
-  fun startSettingsForwardNotificationPermissionActivity(context: Context): Flow<PermissionResult>
-  fun startSettingsForwardReadAudioPermissionActivity(context: Context): Flow<PermissionResult>
+  fun requestPermissionIfNeeded(context: Context, permission: Permission, isRequired: Boolean): Flow<PermissionResult>
+  fun isGrantedPermission(context: Context, permission: Permission): Boolean
 }
+
 // Model
 enum class GrantStatus {
     GRANTED,
     REVOKED;
 }
 data class PermissionResult(val permission: String, val grantStatus: GrantStatus)
+
+abstract class Permission {
+  abstract val manifestPermission: String
+
+  open fun isNeedToRequestPermission(context: Context): Boolean {
+    return ContextCompat.checkSelfPermission(context, manifestPermission) != PackageManager.PERMISSION_GRANTED
+  }
+}
+class NotificationPermission: Permission()
+class ReadAudioPermission: Permission() 
+
 ```

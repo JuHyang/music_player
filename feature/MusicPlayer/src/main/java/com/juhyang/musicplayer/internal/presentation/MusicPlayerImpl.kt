@@ -11,6 +11,8 @@ import com.juhyang.musicplayer.MusicPlayer
 import com.juhyang.musicplayer.Song
 import com.juhyang.musicplayer.internal.model.PlayerState
 import com.juhyang.musicplayer.internal.model.PlayingState
+import com.juhyang.permission.PermissionChecker
+import com.juhyang.permission.model.NotificationPermission
 import kotlinx.coroutines.flow.StateFlow
 
 
@@ -28,6 +30,10 @@ internal class MusicPlayerImpl private constructor() : MusicPlayer {
         override fun onServiceDisconnected(name: ComponentName?) {
             musicService = null
         }
+    }
+
+    override fun onStart(activity: Activity) {
+        PermissionChecker.instance.requestPermissionIfNeeded(activity, NotificationPermission(), isRequired = false)
     }
 
     override fun onResume(activity: Activity) {
@@ -109,5 +115,9 @@ internal class MusicPlayerImpl private constructor() : MusicPlayer {
 
     override fun getPlaylist(): List<Song> {
         return musicService?.getPlayList() ?: emptyList()
+    }
+
+    override fun addPlayList(song: Song) {
+        musicService?.addPlayList(song)
     }
 }

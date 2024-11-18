@@ -8,6 +8,7 @@ import com.juhyang.musicplayer.domain.model.Album
 import com.juhyang.musicplayer.domain.usecase.LoadAlbumUseCase
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -25,14 +26,15 @@ class AlbumDetailViewModel(
         object PlayAll: Intent()
         class PlaySong(val index: Int): Intent()
         object PlayRandom: Intent()
+        class AddPlayList(val index: Int): Intent()
     }
+
     sealed class ViewState {
         object Idle: ViewState()
         class Loaded(val album: Album): ViewState()
-        object Error: ViewState()
     }
 
-    private val _intent: MutableStateFlow<Intent> = MutableStateFlow(Intent.Idle)
+    private val _intent: MutableSharedFlow<Intent> = MutableSharedFlow(replay = 1)
     private val _viewState: MutableStateFlow<ViewState> = MutableStateFlow(ViewState.Idle)
     val viewState: StateFlow<ViewState> = _viewState
 
@@ -73,6 +75,9 @@ class AlbumDetailViewModel(
             is Intent.PlaySong -> {
                 handlePlaySong(intent.index)
             }
+            is Intent.AddPlayList -> {
+                handleAddPlayList(intent.index)
+            }
         }
     }
 
@@ -101,6 +106,12 @@ class AlbumDetailViewModel(
     private fun handlePlaySong(index: Int) {
         album?.let {
             musicPlayer.play(it.songs.slice(index until it.songs.size))
+        }
+    }
+
+    private fun handleAddPlayList(index: Int) {
+        album?.let {
+            musicPlayer.addPlayList(it.songs[index])
         }
     }
 }

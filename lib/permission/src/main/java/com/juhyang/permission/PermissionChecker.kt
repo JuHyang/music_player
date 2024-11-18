@@ -1,6 +1,7 @@
 package com.juhyang.permission
 
 import android.content.Context
+import com.juhyang.permission.model.Permission
 import kotlinx.coroutines.flow.Flow
 
 
@@ -9,10 +10,6 @@ public interface PermissionChecker {
         val instance: PermissionChecker by lazy { PermissionCheckerImpl.instance }
     }
 
-    fun requestNotificationPermissionIfNeeded(context: Context): Flow<PermissionResult>
-    fun isNotificationPermissionGranted(context: Context): Boolean
-    fun requestReadAudioPermissionIfNeeded(context: Context): Flow<PermissionResult>
-    fun isReadAudioPermissionGranted(context: Context): Boolean
-    fun startSettingsForwardNotificationPermissionActivity(context: Context): Flow<PermissionResult>
-    fun startSettingsForwardReadAudioPermissionActivity(context: Context): Flow<PermissionResult>
+    fun requestPermissionIfNeeded(context: Context, permission: Permission, isRequired: Boolean): Flow<PermissionResult>
+    fun isGrantedPermission(context: Context, permission: Permission): Boolean
 }

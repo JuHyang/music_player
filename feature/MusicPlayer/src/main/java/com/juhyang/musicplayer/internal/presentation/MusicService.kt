@@ -23,7 +23,6 @@ import com.juhyang.musicplayer.internal.model.PlayerState
 import com.juhyang.musicplayer.internal.model.PlayingState
 import com.juhyang.musicplayer.internal.model.RepeatMode
 import com.juhyang.musicplayer.internal.model.ShuffleMode
-import com.juhyang.permission.PermissionChecker
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -170,11 +169,6 @@ internal class MusicService : Service() {
         }
 
         startForeground(NOTIFICATION_ID, getNotification())
-        if (!PermissionChecker.instance.isNotificationPermissionGranted(this)) {
-            CoroutineScope(Dispatchers.Main).launch {
-                PermissionChecker.instance.requestNotificationPermissionIfNeeded(this@MusicService).collect {}
-            }
-        }
     }
 
     private fun getNotification(): Notification {
@@ -394,6 +388,12 @@ internal class MusicService : Service() {
 
     fun getPlayList(): List<Song> {
         return _playList
+    }
+
+    fun addPlayList(song: Song)  {
+        val newPlayList = _playList.toMutableList()
+        newPlayList.add(song)
+        _playerState.value = _playerState.value.copy(playList = newPlayList)
     }
 
     private var updateJob: Job? = null

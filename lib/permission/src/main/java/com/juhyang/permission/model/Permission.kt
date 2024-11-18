@@ -1,11 +1,11 @@
-package com.juhyang.permission.internal.model
+package com.juhyang.permission.model
 
 import android.content.Context
 import android.content.pm.PackageManager
 import androidx.core.content.ContextCompat
 
 
-internal abstract class Permission {
+abstract class Permission {
     abstract val manifestPermission: String
 
     open fun isNeedToRequestPermission(context: Context): Boolean {

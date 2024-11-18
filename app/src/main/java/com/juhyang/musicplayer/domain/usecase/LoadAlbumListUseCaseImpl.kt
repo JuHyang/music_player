@@ -7,7 +7,7 @@ import kotlinx.coroutines.flow.Flow
 
 class LoadAlbumListUseCaseImpl(
     private val repository: AlbumRepository
-): LoadAlbumListUseCase {
+) : LoadAlbumListUseCase {
     override suspend fun execute(): Flow<List<Album>> {
         return repository.getAlbumList()
     }

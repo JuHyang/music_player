@@ -12,6 +12,7 @@ interface MusicPlayer {
         val instance: MusicPlayer by lazy { MusicPlayerImpl.instance }
     }
 
+    fun onStart(activity: Activity)
     fun onResume(activity: Activity)
     fun onPause(activity: Activity)
 
@@ -29,5 +30,6 @@ interface MusicPlayer {
     fun seekTo(position: Int)
     fun isPlaying(): Boolean
     fun getPlaylist(): List<Song>
+    fun addPlayList(song: Song)
 }
 

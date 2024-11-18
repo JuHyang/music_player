@@ -1,5 +1,6 @@
 package com.juhyang.musicplayer.presentation
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.juhyang.musicplayer.domain.model.Album
@@ -8,7 +9,9 @@ import com.juhyang.musicplayer.domain.usecase.CheckStoragePermissionUseCase
 import com.juhyang.musicplayer.domain.usecase.LoadAlbumListUseCase
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
@@ -24,6 +27,7 @@ class AlbumListViewModel(
         object LoadAlbums: Intent()
         object GrantStoragePermission: Intent()
         object RevokeStoragePermission: Intent()
+        object RequestStoragePermission: Intent()
         class ClickAlbum(val album: Album): Intent()
     }
 
@@ -40,12 +44,12 @@ class AlbumListViewModel(
         object RequestStoragePermission: ViewAction()
     }
 
-    private val _intent: MutableStateFlow<Intent> = MutableStateFlow(Intent.Idle)
+    private val _intent: MutableSharedFlow<Intent> = MutableSharedFlow(replay = 1)
     private val _viewState: MutableStateFlow<ViewState> = MutableStateFlow(ViewState.Idle)
     val viewState: StateFlow<ViewState> = _viewState
 
-    private val _viewAction: MutableStateFlow<ViewAction> = MutableStateFlow(ViewAction.Idle)
-    val viewAction: StateFlow<ViewAction> = _viewAction
+    private val _viewAction: MutableSharedFlow<ViewAction> = MutableSharedFlow(replay = 1)
+    val viewAction: SharedFlow<ViewAction> = _viewAction
 
     init {
         viewModelScope.launch(mainDispatcher) {
@@ -88,6 +92,9 @@ class AlbumListViewModel(
             is Intent.ClickAlbum -> {
                 handleClickAlbum(intent.album)
             }
+            is Intent.RequestStoragePermission -> {
+                setViewAction(ViewAction.RequestStoragePermission)
+            }
         }
     }
 
@@ -99,7 +106,7 @@ class AlbumListViewModel(
                         loadAlbum()
                     }
                     PermissionStatus.REVOKED -> {
-                        setViewAction(ViewAction.RequestStoragePermission)
+                        setViewState(ViewState.ErrorPermissionDenied)
                     }
                 }
             }

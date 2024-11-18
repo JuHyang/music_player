@@ -7,6 +7,7 @@ import com.juhyang.musicplayer.internal.model.PlayerState
 import com.juhyang.musicplayer.internal.model.PlayingState
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -15,8 +16,6 @@ import kotlinx.coroutines.launch
 internal class MusicPlayerViewModel(
     private val musicPlayer: MusicPlayer,
     private val mainDispatcher: CoroutineDispatcher = Dispatchers.Main,
-    private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
-    private val defaultDispatcher: CoroutineDispatcher = Dispatchers.Default
 ) : ViewModel() {
     sealed class Intent {
         object Idle : Intent()
@@ -35,7 +34,7 @@ internal class MusicPlayerViewModel(
         object PlayList: ViewState()
     }
 
-    private val _intent: MutableStateFlow<Intent> = MutableStateFlow(Intent.Idle)
+    private val _intent: MutableSharedFlow<Intent> = MutableSharedFlow(replay = 1)
     private val _viewState: MutableStateFlow<ViewState> = MutableStateFlow(ViewState.MusicPlayer)
     val viewState: StateFlow<ViewState> = _viewState
 
@@ -101,6 +100,5 @@ internal class MusicPlayerViewModel(
                 setViewState(newViewState)
             }
         }
-        _intent.value = Intent.Idle
     }
 }

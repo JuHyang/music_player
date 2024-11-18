@@ -1,6 +1,5 @@
 package com.juhyang.musicplayer.ui
 
-import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -12,6 +11,7 @@ import androidx.compose.material.rememberBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.lifecycleScope
@@ -23,19 +23,17 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.juhyang.musicplayer.MusicPlayer
 import com.juhyang.musicplayer.MusicPlayerView
-import com.juhyang.musicplayer.data.repository.PermissionRepositoryImpl
 import com.juhyang.musicplayer.di.AlbumDIContainer
 import com.juhyang.musicplayer.di.SongListDiContainer
-import com.juhyang.musicplayer.presentation.AlbumDetailViewModel
 import com.juhyang.musicplayer.presentation.AlbumListViewModel
 import com.juhyang.musicplayer.ui.theme.MusicPlayerTheme
 import com.juhyang.permission.GrantStatus
 import com.juhyang.permission.PermissionChecker
+import com.juhyang.permission.model.ReadAudioPermission
 import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
     private lateinit var albumListViewModel: AlbumListViewModel
-    private lateinit var albumDetailViewModel: AlbumDetailViewModel
     private val musicPlayer by lazy { MusicPlayer.instance }
     private var navController: NavHostController? = null
     private val permissionChecker by lazy { PermissionChecker.instance }
@@ -45,17 +43,20 @@ class MainActivity : ComponentActivity() {
         val albumDiContainer = AlbumDIContainer()
         albumListViewModel = albumDiContainer.createViewModel(this)
 
-        val songListDIContainer = SongListDiContainer()
-        albumDetailViewModel = songListDIContainer.createViewModel(this)
-
         bindViewModel()
 
         setContent {
             MusicPlayerTheme {
                 navController = rememberNavController()
-                MyApp(navController = navController!!, albumListViewModel = albumListViewModel, albumDetailViewModel = albumDetailViewModel)
+                MyApp(navController = navController!!, albumListViewModel = albumListViewModel)
             }
         }
+    }
+
+    override fun onStart() {
+        super.onStart()
+
+        musicPlayer.onStart(this)
     }
 
     override fun onResume() {
@@ -90,39 +91,21 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun requestStoragePermission() {
-        val manifestPermission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            PermissionRepositoryImpl.READ_MEDIA_AUDIO_PERMISSION
-        } else {
-            PermissionRepositoryImpl.READ_EXTERNAL_STORAGE_PERMISSION
-        }
-        if (shouldShowRequestPermissionRationale(manifestPermission)) {
-            lifecycleScope.launch {
-                permissionChecker.startSettingsForwardReadAudioPermissionActivity(this@MainActivity)
-                    .collect {
-                        if (it.grantStatus == GrantStatus.GRANTED) {
-                            albumListViewModel.setIntent(AlbumListViewModel.Intent.GrantStoragePermission)
-                        } else {
-                            albumListViewModel.setIntent(AlbumListViewModel.Intent.RevokeStoragePermission)
-                        }
+        lifecycleScope.launch {
+            permissionChecker.requestPermissionIfNeeded(this@MainActivity, ReadAudioPermission(), isRequired = true)
+                .collect {
+                    if (it.grantStatus == GrantStatus.GRANTED) {
+                        albumListViewModel.setIntent(AlbumListViewModel.Intent.GrantStoragePermission)
+                    } else {
+                        albumListViewModel.setIntent(AlbumListViewModel.Intent.RevokeStoragePermission)
                     }
-            }
-        } else {
-            lifecycleScope.launch {
-                permissionChecker.requestReadAudioPermissionIfNeeded(this@MainActivity)
-                    .collect {
-                        if (it.grantStatus == GrantStatus.GRANTED) {
-                            albumListViewModel.setIntent(AlbumListViewModel.Intent.GrantStoragePermission)
-                        } else {
-                            albumListViewModel.setIntent(AlbumListViewModel.Intent.RevokeStoragePermission)
-                        }
-                    }
-            }
+                }
         }
     }
 }
 
 @Composable
-fun MyApp(navController: NavHostController, albumListViewModel: AlbumListViewModel, albumDetailViewModel: AlbumDetailViewModel) {
+fun MyApp(navController: NavHostController, albumListViewModel: AlbumListViewModel) {
     val bottomSheetState = rememberBottomSheetState(BottomSheetValue.Collapsed)
     val scaffoldState = rememberBottomSheetScaffoldState(bottomSheetState)
     val coroutineScope = rememberCoroutineScope()
@@ -154,6 +137,8 @@ fun MyApp(navController: NavHostController, albumListViewModel: AlbumListViewMod
                 "albumDetail/{albumTitle}/{artistName}",
                 arguments = listOf(navArgument("albumTitle") { type = NavType.StringType}, navArgument("artistName") { type = NavType.StringType})
             ) { backStackEntry ->
+                val songListDIContainer = SongListDiContainer()
+                val albumDetailViewModel = songListDIContainer.createViewModel(LocalContext.current)
                 val albumTitle = backStackEntry.arguments?.getString("albumTitle") ?: ""
                 val artist = backStackEntry.arguments?.getString("artistName") ?: ""
                 AlbumDetailScreen(viewModel = albumDetailViewModel, albumTitle = albumTitle, artist = artist)

@@ -1,9 +1,9 @@
 package com.juhyang.permission.internal
 
 import android.Manifest
-import com.juhyang.permission.internal.model.NotificationPermission
-import com.juhyang.permission.internal.model.Permission
-import com.juhyang.permission.internal.model.ReadAudioPermission
+import com.juhyang.permission.model.NotificationPermission
+import com.juhyang.permission.model.Permission
+import com.juhyang.permission.model.ReadAudioPermission
 
 internal class PermissionMapper {
     fun map(permission: String): Permission? {

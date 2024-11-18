@@ -1,4 +1,4 @@
-package com.juhyang.permission.internal.model
+package com.juhyang.permission.model
 
 import android.Manifest
 import android.app.NotificationManager
@@ -6,9 +6,9 @@ import android.content.Context
 import android.os.Build
 
 
-internal class NotificationPermission: Permission() {
+class NotificationPermission: Permission() {
     companion object {
-        const val MANIFEST_PERMISSION = Manifest.permission.POST_NOTIFICATIONS
+        private const val MANIFEST_PERMISSION = Manifest.permission.POST_NOTIFICATIONS
     }
 
     override val manifestPermission = MANIFEST_PERMISSION
