@@ -289,14 +289,8 @@ internal class MusicService : Service() {
         updateNotification(song.title, song.artistName, song.albumCoverUri.toString())
     }
 
-    fun playNextSong() {
-        val nextSong = getNextSong() ?: return
-
-        play(nextSong)
-    }
-
-    private fun playEnded() {
-        val nextSong = getNextSong()
+       private fun playEnded() {
+        val nextSong = getNextSongWhenEnd()
 
         if (nextSong != null) {
             play(nextSong)
@@ -308,7 +302,7 @@ internal class MusicService : Service() {
         pause()
     }
 
-    private fun getNextSong(): Song? {
+    private fun getNextSongWhenEnd(): Song? {
         val repeatMode = _playerState.value.repeatMode
         if (repeatMode == RepeatMode.ONE) {
             return _playingState.value.currentSong
@@ -337,17 +331,36 @@ internal class MusicService : Service() {
             seekTo(0)
             return
         }
-        val previousSong = getPreviousSong()
-        play(previousSong)
+
+        play(getPreviousSongIndex())
     }
 
-    private fun getPreviousSong(): Song {
-        val previousIndex = currentPlayingSongIndex - 1
+    private fun getPreviousSongIndex(): Int {
+        var previousIndex = currentPlayingSongIndex - 1
         if (previousIndex < 0) {
-            _playerState.value = _playerState.value.copy(currentPlayingSongIndex =  getPlayList().size - 1)
+            previousIndex = getPlayList().size - 1
         }
 
-        return getPlayList()[currentPlayingSongIndex]
+        return previousIndex
+    }
+
+    fun playNextSong() {
+        play(getNextSongIndex())
+    }
+
+    private fun getNextSongIndex(): Int {
+        val shuffleMode = _playerState.value.shuffleMode
+        if (shuffleMode == ShuffleMode.ON) {
+            val randomIndex = (0 until getPlayList().size).random()
+            return randomIndex
+        }
+
+        var nextIndex = currentPlayingSongIndex + 1
+        if (nextIndex >= getPlayList().size) {
+            nextIndex = 0
+        }
+
+        return nextIndex
     }
 
     fun stop() {
@@ -394,6 +407,10 @@ internal class MusicService : Service() {
         val newPlayList = _playList.toMutableList()
         newPlayList.add(song)
         _playerState.value = _playerState.value.copy(playList = newPlayList)
+
+        if (newPlayList.size == 1) {
+            play(song)
+        }
     }
 
     private var updateJob: Job? = null

@@ -44,7 +44,7 @@ internal fun ExpandedMusicPlayer(onCollapse: () -> Unit, viewModel: MusicPlayerV
 
     Column(
         modifier = Modifier
-            .height((screenHeight * 0.7).dp)
+            .height((screenHeight * 0.9).dp)
             .background(Color.Black)
             .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
