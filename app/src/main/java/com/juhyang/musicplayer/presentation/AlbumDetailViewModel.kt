@@ -21,7 +21,6 @@ class AlbumDetailViewModel(
     private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
 ) : ViewModel() {
     sealed class Intent {
-        object Idle: Intent()
         class LoadAlbum(val albumTitle: String, val artist: String): Intent()
         object PlayAll: Intent()
         class PlaySong(val index: Int): Intent()
@@ -62,7 +61,6 @@ class AlbumDetailViewModel(
 
     private fun handleIntent(intent: Intent) {
         when (intent) {
-            is Intent.Idle -> {}
             is Intent.LoadAlbum -> {
                 handleLoadSongs(intent.albumTitle, intent.artist)
             }

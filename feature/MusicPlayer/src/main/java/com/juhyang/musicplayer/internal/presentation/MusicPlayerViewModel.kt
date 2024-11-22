@@ -18,7 +18,6 @@ internal class MusicPlayerViewModel(
     private val mainDispatcher: CoroutineDispatcher = Dispatchers.Main,
 ) : ViewModel() {
     sealed class Intent {
-        object Idle : Intent()
         class Play(val index: Int): Intent()
         object ClickPlayButton: Intent()
         object Previous: Intent()
@@ -65,7 +64,6 @@ internal class MusicPlayerViewModel(
 
     private fun handleIntent(intent: Intent) {
         when (intent) {
-            is Intent.Idle -> {}
             is Intent.Play -> {
                 musicPlayer.play(intent.index)
             }

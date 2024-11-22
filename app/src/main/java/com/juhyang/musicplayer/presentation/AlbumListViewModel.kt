@@ -1,6 +1,5 @@
 package com.juhyang.musicplayer.presentation
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.juhyang.musicplayer.domain.model.Album
@@ -23,7 +22,6 @@ class AlbumListViewModel(
     private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
 ): ViewModel() {
     sealed class Intent {
-        object Idle: Intent()
         object LoadAlbums: Intent()
         object GrantStoragePermission: Intent()
         object RevokeStoragePermission: Intent()
@@ -39,7 +37,6 @@ class AlbumListViewModel(
     }
 
     sealed class ViewAction {
-        object Idle: ViewAction()
         class MoveAlbumDetailScreen(val album: Album): ViewAction()
         object RequestStoragePermission: ViewAction()
     }
@@ -79,7 +76,6 @@ class AlbumListViewModel(
 
     private fun handleIntent(intent: Intent) {
         when (intent) {
-            is Intent.Idle -> {}
             is Intent.LoadAlbums -> {
                 handleLoadAlbums()
             }

@@ -80,7 +80,6 @@ class MainActivity : ComponentActivity() {
 
     private fun handleAlbumViewAction(viewAction: AlbumListViewModel.ViewAction) {
         when (viewAction) {
-            is AlbumListViewModel.ViewAction.Idle -> { }
             is AlbumListViewModel.ViewAction.MoveAlbumDetailScreen -> {
                 navController?.navigate("albumDetail/${viewAction.album.title}/${viewAction.album.artist}")
             }

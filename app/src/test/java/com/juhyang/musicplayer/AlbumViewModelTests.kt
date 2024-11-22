@@ -9,6 +9,7 @@ import io.mockk.MockKAnnotations
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.impl.annotations.MockK
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 import org.junit.Before
@@ -46,7 +47,7 @@ class AlbumViewModelTests : CoroutineTest() {
         viewModel.setIntent(AlbumListViewModel.Intent.LoadAlbums)
         coVerify { checkStoragePermissionUseCase.execute() }
 
-        assert(viewModel.viewAction.value is AlbumListViewModel.ViewAction.RequestStoragePermission)
+        assert(viewModel.viewState.value is AlbumListViewModel.ViewState.ErrorPermissionDenied)
     }
 
     @Test
@@ -55,8 +56,10 @@ class AlbumViewModelTests : CoroutineTest() {
 
         viewModel.setIntent(AlbumListViewModel.Intent.LoadAlbums)
         coVerify { checkStoragePermissionUseCase.execute() }
+        assert(viewModel.viewState.value is AlbumListViewModel.ViewState.ErrorPermissionDenied)
 
-        assert(viewModel.viewAction.value is AlbumListViewModel.ViewAction.RequestStoragePermission)
+        viewModel.setIntent(AlbumListViewModel.Intent.RequestStoragePermission)
+        assert(viewModel.viewAction.first() is AlbumListViewModel.ViewAction.RequestStoragePermission)
         viewModel.setIntent(AlbumListViewModel.Intent.RevokeStoragePermission)
 
         assert(viewModel.viewState.value is AlbumListViewModel.ViewState.ErrorPermissionDenied)
@@ -69,8 +72,10 @@ class AlbumViewModelTests : CoroutineTest() {
 
         viewModel.setIntent(AlbumListViewModel.Intent.LoadAlbums)
         coVerify { checkStoragePermissionUseCase.execute() }
+        assert(viewModel.viewState.value is AlbumListViewModel.ViewState.ErrorPermissionDenied)
 
-        assert(viewModel.viewAction.value is AlbumListViewModel.ViewAction.RequestStoragePermission)
+        viewModel.setIntent(AlbumListViewModel.Intent.RequestStoragePermission)
+        assert(viewModel.viewAction.first() is AlbumListViewModel.ViewAction.RequestStoragePermission)
         viewModel.setIntent(AlbumListViewModel.Intent.GrantStoragePermission)
 
         coVerify { loadAlbumListUseCase.execute() }
@@ -107,7 +112,7 @@ class AlbumViewModelTests : CoroutineTest() {
     fun `앨범 클릭하면 곡 목록화면으로 넘어간다`() = runTest {
         viewModel.setIntent(AlbumListViewModel.Intent.ClickAlbum(albumB))
 
-        val viewActionValue = viewModel.viewAction.value
+        val viewActionValue = viewModel.viewAction.first()
         assert(viewActionValue is AlbumListViewModel.ViewAction.MoveAlbumDetailScreen)
         assert((viewActionValue as AlbumListViewModel.ViewAction.MoveAlbumDetailScreen).album == albumB)
     }
